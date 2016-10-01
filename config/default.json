@@ -1,0 +1,6 @@
+{
+	"srcDir": "dev",
+	"targetDir": "target",
+	"destDir": "src",
+	"testDir": "test"
+}
