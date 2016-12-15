@@ -4,8 +4,8 @@ export default class MapsUtil{
 
   /**
    * Get a Postal Address from geo location
-   * @param {long} longitude number
-   * @param {lat} latitude number
+   * @param { number } long longi tude
+   * @param { number } lat latitude
    */
   static getStreetAddress (long, lat) {
     var response = Maps.newGeocoder().reverseGeocode(long, lat);
