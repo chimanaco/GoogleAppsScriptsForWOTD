@@ -26,8 +26,17 @@ Bundled script to upload to Google Docs will be here.
 
 ## Getting Started
 
-$ direnv allow
-$ npm install
+$ sh setup.sh
+
+* On your script, select `Developers console Project` in `Resources` Menu and 
+ click `View Developer Console`. 
+* Click `Credentials` on left menu.
+* Click `Create credentials` on `credentials` and then select `Oauth Client ID`.
+* Select `Other` in `application type`, click `Create`, input your app name and click `Create again`.
+* You can download your credential json file by clicking download button from `OAuth 2.0 client IDs`.
+* Move your credential json file into `credentials` directory in the project.
+
+$ gapps auth ./credentials/{filename}.json
 
 ## Usage
 
