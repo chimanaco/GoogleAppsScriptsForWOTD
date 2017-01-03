@@ -7,6 +7,7 @@ export default class SpreadsheetsUtil{
    * @param { } nothing
    */
   static init () {
+    Logger.log("SpreadsheetsUtil init");
     this.scriptProperties = PropertiesService.getScriptProperties();
   }
 
@@ -15,6 +16,7 @@ export default class SpreadsheetsUtil{
    * @param { } nothing
    */
   static getSpreadSheet () {
+    Logger.log("SpreadsheetsUtil getSpreadSheet");
     const SPREADSHEET_ID = this.scriptProperties.getProperty("spreadsheet_id");
     var spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
     Logger.log(spreadsheet);

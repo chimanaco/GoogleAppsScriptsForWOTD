@@ -1,142 +1,219 @@
 "use strict";
 
-import Month from './libs/util/Month.js';
 import MapsUtil from './libs/Google/MapsUtil.js';
 import SpreadsheetsUtil from './libs/Google/SpreadsheetsUtil';
+import InstagramUtil from './libs/Instagram/InstagramUtil';
 
-const scriptProperties = PropertiesService.getScriptProperties();
+export default class Instagram {
+    constructor() {
+        this.TAG = 'Instagram ';
+        Logger.log(this.TAG + "constructor");
 
-global.fetchInstagram = () => {
-	Logger.log("Instagram fetch");
+        this.SCRIPT_PROPERTIES = PropertiesService.getScriptProperties();
+        this.SHEET_NAME = this.SCRIPT_PROPERTIES.getProperty("sheet_name");
+        this.ACCESS_TOKEN = this.SCRIPT_PROPERTIES.getProperty("instagram_access_token");
 
-	SpreadsheetsUtil.init();
-	const spreadsheet = SpreadsheetsUtil.getSpreadSheet();
-	Logger.log(spreadsheet);
+        this.ORG_DATE_COL = 1;
+        this.URL_COL = 3;
+        this.NEW_DATE_COL = 5;
+        this.NAME_COL = 6;
+        this.LATITUDE_COL = 7;
+        this.LONGITUDE_COL = 8;
+        this.ADDRESS_COL = 9;
+        this.COUNTRY_COL = 10;
+        this.TAGS_COL = 12;
+        this.USER_INSTAGRAM_COL = 14;
+        this.FB_GROUP_COL = 15;
 
-	const SHEET_NAME = scriptProperties.getProperty("sheet_name");
-
-	//var sheet = spreadsheet.getActiveSheet();
-	const sheet = spreadsheet.getSheetByName(SHEET_NAME);
-	Logger.log(sheet);
-
-	const row = sheet.getLastRow();
-	Logger.log(row);
-
-	// Get Name to test
-	const name = sheet.getRange(row, 6).getValue();
-	Logger.log(name);
-
-	if(name.length > 0) {
-		Logger.log('Exists');
-	} else {
-		Logger.log('Nothing');
-		// When it's not done yet, go!
-
-		// Set Infromation
-		setInformation(sheet, row);
-		// Convert Date
-		convertDate(sheet, row);
+        this._init();
 	}
-}
 
-global.setInformation = (sheet, row) => {
-	var ACCESS_TOKEN = scriptProperties.getProperty("instagram_access_token");
+    /**
+     * write data on the spreadsheet
+     * @param { }
+     */
+    writeData() {
+        const isNameExists = this._checkIfNameExists(this.lastRow);
+        Logger.log(this.TAG + "writeData() isNameExists=" + isNameExists);
 
-	var URL = sheet.getRange(row, 3).getValue();
+        if(!isNameExists) {
+            // Write Infromation
+            this._writeInformationOnRow(this.sheet, this.lastRow);
+        }
+    }
 
-	var urlSplits = URL.split("/");
-	var SHORT_CODE = urlSplits[4];
+    /**
+     * init spreadsheet
+     * @param { }
+     */
+    _init() {
+    	// SpreadSheet
+        SpreadsheetsUtil.init();
+        const spreadsheet = SpreadsheetsUtil.getSpreadSheet();
+        Logger.log(this.TAG + "init() speradsheet=" + spreadsheet);
 
-	//Endpoint url to fetch photos information,
-	var url = 'https://api.instagram.com/v1/media/shortcode/'+SHORT_CODE+'?access_token='+ACCESS_TOKEN
-	Logger.log(url);
+        // sheet
+        this.sheet = spreadsheet.getSheetByName(this.SHEET_NAME);
+        Logger.log(this.TAG + "init() sheet= " + this.sheet);
 
-	//let us fetch the details from API. This will give you the details of photos and URL
-	var response = UrlFetchApp.fetch(url).getContentText();
-	Logger.log(response);
+        // last row
+        this.lastRow = this.sheet.getLastRow();
+        Logger.log(this.TAG + "init() lastRow=  " + this.lastRow);
+    }
 
-	//pase the JSON string data to JSON
-	var responseObj = JSON.parse(response);
+    /**
+     * check if the row is done or not
+     * @param { number } row the row to check
+     * @return { boolean } isExists
+     */
+    _checkIfNameExists (row) {
+        // Get Name value to test
+        const nameValue = this.sheet.getRange(row, this.NAME_COL).getValue();
+        Logger.log(nameValue);
 
-	//get photo data
-	var photoData = responseObj.data;
+        let isExists = false;
+        if(nameValue.length > 0) {
+            isExists = true;
+        }
+        Logger.log(this.TAG + 'checkIfNameExists= ' + isExists);
+        return isExists;
+    }
 
-	var name = photoData.location.name;
-	var latitude = photoData.location.latitude;
-	var longitude = photoData.location.longitude;
-	var tagString = getTagString(photoData.tags);
-	Logger.log('2-----' + tagString);
+    /**
+     * write some information from the photo on the row
+     * @param { string } sheet the sheet in use
+     * @param { number } row the row to write
+     */
+	_writeInformationOnRow (sheet, row) {
+        const url = sheet.getRange(row, this.URL_COL).getValue();
+        const photoData = InstagramUtil.getData(url, this.ACCESS_TOKEN);
 
-	sheet.getRange(row, 6).setValue(name);
-	sheet.getRange(row, 7).setValue(latitude);
-	sheet.getRange(row, 8).setValue(longitude);
-	sheet.getRange(row, 12).setValue(tagString);
+        const name = photoData.location.name;
+        const latitude = photoData.location.latitude;
+        const longitude = photoData.location.longitude;
+        const tagString = this._getTagString(photoData.tags);
 
-	Logger.log(name);
-	//Logger.log('2-----' + tagString);
+        sheet.getRange(row, this.NAME_COL).setValue(name);
+        sheet.getRange(row, this.LATITUDE_COL).setValue(latitude);
+        sheet.getRange(row, this.LONGITUDE_COL).setValue(longitude);
+        sheet.getRange(row, this.TAGS_COL).setValue(tagString);
 
-	// Set Address from latitude and longitude
-	setAddress(sheet, row, latitude, longitude);
-}
+        // Log
+        Logger.log(this.TAG + "_setInformation() name= " + name);
+        Logger.log(this.TAG + "_setInformation() latitude= " + latitude);
+        Logger.log(this.TAG + "_setInformation() longitude= " + longitude);
+        Logger.log(this.TAG + "_setInformation() tagString= " + tagString);
 
-/* Set Address from geo location */
-global.setAddress = (sheet, row, latitude, longitude) => {
-	var address = MapsUtil.getStreetAddress(latitude, longitude);
-	Logger.log(address);
-	sheet.getRange(row, 9).setValue(address);
+        // Set Address from latitude and longitude
+        this._writeLocation(sheet, row, latitude, longitude);
 
-	var addressSplits = address.split(",");
-	var country = addressSplits.pop();
-	country = country.replace(/^\s+|\s+$/g, "");
-	Logger.log(country);
-	sheet.getRange(row, 10).setValue(country);
-}
+        // Write Date
+        this._writeDate(sheet, row);
 
-/* Get string from array */
-global.getTagString = (tags) => {
-	Logger.log(tags);
+        // Write Instagram account
+        this._writeIGUser(sheet, row);
 
-	var tagString = "";
+        // Write Facebook group
+        this._writeFBGroup(sheet, row);
+    }
 
-	var len = tags.length;
-	Logger.log(len);
-
-	for(var i = 0; i < len; i ++) {
-		tagString += tags[i];
-		if(i < len - 1) {
-			tagString += ",";
-		}
-		Logger.log(tagString);
-
+    /**
+     * write location information on the row
+     * @param { string } sheet the sheet in use
+     * @param { number } row the row in use
+     * @param { number } latitude
+     * @param { number } longitude
+     */
+    _writeLocation (sheet, row, latitude, longitude) {
+        const address = MapsUtil.getStreetAddress(latitude, longitude);
+        Logger.log(this.TAG + "_writeLocation() address= " + address);
+        this._writeAddress(sheet, row, address);
+        this._writeCountry(sheet, row, address);
 	}
-	return tagString;
+
+    /**
+     * write address on the row
+     * @param { string } sheet the sheet in use
+     * @param { number } row the row in use
+     * @param { string } address
+     */
+    _writeAddress(sheet, row, address){
+        Logger.log(this.TAG + "_writeAddress() address= " + address);
+        sheet.getRange(row, this.ADDRESS_COL).setValue(address);
+	}
+
+    /**
+     * write country on the row
+     * @param { string } sheet the sheet in use
+     * @param { number } row the row in use
+     * @param { string } address
+     */
+    _writeCountry(sheet, row, address){
+        const addressSplits = address.split(",");
+        Logger.log(this.TAG + "_writeCountry() addressSplits= " + addressSplits);
+        let country = addressSplits.pop();
+        country = country.replace(/^\s+|\s+$/g, "");
+        Logger.log(this.TAG + "_writeCountry() country= " + country);
+        sheet.getRange(row, this.COUNTRY_COL).setValue(country);
+	}
+
+    /**
+     * write date on the row
+     * @param { string } sheet the sheet in use
+     * @param { number } row the row in use
+     */
+    _writeDate(sheet, row){
+        const convertedDate = this._convertDate(sheet, row);
+        Logger.log(this.TAG + "_writeDate() convertedDate= " + convertedDate);
+        sheet.getRange(row, this.NEW_DATE_COL).setValue(convertedDate);
+    }
+
+    /**
+     * write instagram user account
+     * @param { string } sheet the sheet in use
+     * @param { number } row the row in use
+     */
+    _writeIGUser(sheet, row){
+        Logger.log(this.TAG + "_writeIGUser()");
+        sheet.getRange(row, this.USER_INSTAGRAM_COL).setFormula('=REGEXEXTRACT(B'+row+',"@{1}[A-Za-z0-9_.-]*")');
+    }
+
+    /**
+     * write facebook group
+     * @param { string } sheet the sheet in use
+     * @param { number } row the row in use
+     */
+    _writeFBGroup(sheet, row){
+        Logger.log(this.TAG + "_writeFBGroup()");
+        sheet.getRange(row, this.FB_GROUP_COL).setFormula('=REGEXEXTRACT(B'+row+',"our\x20.*p")');
+    }
+
+    /**
+     * Get tag string from the tag array
+     * @param { string[] } tags tag for the photo
+     * @return { string } tagString
+     */
+    _getTagString (tags) {
+        Logger.log(this.TAG + "_getTagString() tags= " + tags);
+        const tagsString = InstagramUtil.getTagsAsString(tags);
+        Logger.log(this.TAG + "_getTagString() tagsString= " + tagsString);
+        return tagsString;
+    }
+
+    /**
+     * Convert Date from Instagram format to Calendar format
+     * @param { string } sheet the sheet in use
+     * @param { number } row the row in use
+     * @return { Object } newDate
+     */
+    _convertDate (sheet, row) {
+        const date = sheet.getRange(row, this.ORG_DATE_COL).getValue();
+        Logger.log(this.TAG + "_convertDate() date= " + date);
+
+        const newDate = InstagramUtil.getConvertedDate(date);
+        Logger.log(this.TAG + "_convertDate() newDate= " + newDate);
+
+        return newDate;
+    }
 }
-
-/* Convert Date from Instagram format to Calendar format */
-global.convertDate = (sheet, row) => {
-	var DATE = sheet.getRange(row, 1).getValue();
-	Logger.log(DATE);
-
-	var dateSplits = DATE.split(" ");
-	var mString = dateSplits[0]; // month
-	var dString = dateSplits[1]; // date + ,
-	var yString = dateSplits[2]; // year
-
-	Logger.log(mString);
-	Logger.log(dString);
-	Logger.log(yString);
-
-	var mNum = Month.getNumber(mString);
-	Logger.log(mNum);
-
-	var dNum = dString.split(",");
-	Logger.log(dNum[0]);
-
-	var ddd = mNum + "/" + dNum[0] + "/" + yString;
-	Logger.log(ddd);
-
-	sheet.getRange(row, 5).setValue(ddd);
-}
-
-
 
