@@ -1,212 +1,222 @@
-const scriptProperties = PropertiesService.getScriptProperties();
-const CONSUMER_KEY = scriptProperties.getProperty("tumblr_consumer_key");
-const CONSUMER_SECRET = scriptProperties.getProperty("tumblr_consumer_secret");
+import SpreadsheetsUtil from './libs/Google/SpreadsheetsUtil';
+import TumblrUtil from './libs/Tumblr/TumblrUtil';
 
-/*
- * From Here
- *
-*/
-global.startTumblr = (sheet, row) => {
-  var sheet = getSheet();
-  var row = sheet.getLastRow();
-  Logger.log(row);
-  
-  var isDone = sheet.getRange(row, 14).getValue();
-  Logger.log('checkyou=' + isDone);
-    
-  var firstRow = checkIfDone(sheet, row);
-  Logger.log("First Row = " + firstRow);
-  goPosts(sheet, firstRow, row);
-}
+export default class Tumblr {
+  constructor() {
+    this.TAG = 'Tumblr ';
+    Logger.log(this.TAG + "constructor");
 
-global.goPosts = (sheet, firstRow, lastRow) => {
-  for (var i = firstRow; i < lastRow + 1; i ++){
-    Logger.log("Post:" + i);
-    tumblrPost(sheet, i);
+    this.SCRIPT_PROPERTIES = PropertiesService.getScriptProperties();
+    this.SHEET_NAME = this.SCRIPT_PROPERTIES.getProperty("sheet_name");
+    this.CONSUMER_KEY = this.SCRIPT_PROPERTIES.getProperty("tumblr_consumer_key");
+    this.CONSUMER_SECRET = this.SCRIPT_PROPERTIES.getProperty("tumblr_consumer_secret");
+
+    // Logger.log(this.TAG + "constructor config" + Config.srcDir)
+    this.BLOG_POST_URL = "https://api.tumblr.com/v2/blog/washroomoftheday.tumblr.com/post";
+
+    //
+
+    // TODO: Move to Singleton
+    this.SOURCE_COL = 4;
+    this.DATE_COL = 5;
+    this.NAME_COL = 6;
+    this.LATITUDE_COL = 7;
+    this.LONGITUDE_COL = 8;
+    this.ADDRESS_COL = 9;
+    this.COUNTRY_COL = 10;
+    this.CITY_COL = 11;
+    this.TAGS_COL = 12;
+    this.DONE_COL = 13;
+    this.USER_INSTAGRAM_COL = 14;
+    this.FB_GROUP_COL = 15;
+
+    this._init();
   }
-}
 
-global.tumblrPost = (sheet, row) => {
-  Logger.log(row);
-    
-  var service = getTumblrService();
-  var name = sheet.getRange(row, 6).getValue();
-  var country = sheet.getRange(row, 10).getValue();
-  var city = sheet.getRange(row, 11).getValue();
-  var caption = name + "\n" + city + " " + country;
-  var source = sheet.getRange(row, 4).getValue();
-  var tags = sheet.getRange(row, 12).getValue();
-  
-  var from = sheet.getRange(row, 14).getValue();
-  var via = sheet.getRange(row, 15).getValue();
-  
-  Logger.log('from' + from);  
-  Logger.log('via' + via);
+  /**
+   * write data on the spreadsheet
+   * @param { }
+   */
+  writeData() {
+    const firstRow = this._checkIfDone(this.lastRow);
+    Logger.log("First Row = " + firstRow);
 
-  if(from != '#N/A') {
-    Logger.log('From exists' + from);
-    // Add Instagram link text
-    caption += getInstagramLinkText(from);
-  } else if (via != '#N/A') {
-    Logger.log('Via Exists' + via);
-    // Add FB Group link text
-    caption += getFBGroupLinkText(via);  
-  }
-  
-  var BLOG_POST_URL = "https://api.tumblr.com/v2/blog/washroomoftheday.tumblr.com/post";
-  var options =
-  {
-    "oAuthServiceName" : "tumblr",
-    "oAuthUseToken" : "always",
-    "method" : "POST",
-    "payload" : {
-      "type": "photo",
-      "caption": caption,
-      "source": source,
-      "tags": tags
-    }
-  };
-      
-  if (service.hasAccess()) {
-    var response = service.fetch(BLOG_POST_URL, options);
-    Logger.log(response);  
-    setDoneNumber(sheet, row);
-    
-    var date = sheet.getRange(row, 5).getValue();
-    var lat = sheet.getRange(row, 7).getValue();
-    var lon = sheet.getRange(row, 8).getValue();
-    var address = sheet.getRange(row, 9).getValue();
-    var insta = sheet.getRange(row, 14).getValue();
-    
-    copyCell(date, name, lat, lon, address, country, city, insta);
-    
-  } else {
-    var authorizationUrl = service.authorize();
-    Logger.log('Please visit the following URL and then re-run the script: ' + authorizationUrl);
-  }
-}
-
-/*
- * Set Done Number as it's done.
- *
-*/
-global.setDoneNumber = (sheet, row) => {
-  sheet.getRange(row, 13).setValue(1);
-  Logger.log('Set Done Number on' + row);  
-}
-
-global.copyCell = (date, name, lat, lon, address, country, city, insta) => {
-  var sheet = getWashromSheet();
-  var row = sheet.getLastRow() + 1;
-  Logger.log(row);
-  
-  sheet.getRange(row, 2).setValue(date);
-  sheet.getRange(row, 3).setValue(name);
-  sheet.getRange(row, 4).setValue(lat);
-  sheet.getRange(row, 5).setValue(lon);
-  sheet.getRange(row, 6).setValue(address);
-  sheet.getRange(row, 7).setValue(country);
-  sheet.getRange(row, 8).setValue(city);
-  sheet.getRange(row, 9).setValue(insta);
-  Logger.log('Set Done Number on' + row);  
-}
-
-
-global.getTumblrService = () => {
-  return OAuth1.createService('tumblr')
-      .setAccessTokenUrl('http://www.tumblr.com/oauth/access_token')
-      .setRequestTokenUrl('http://www.tumblr.com/oauth/request_token')
-      .setAuthorizationUrl('http://www.tumblr.com/oauth/authorize')
-      .setConsumerKey(CONSUMER_KEY)
-      .setConsumerSecret(CONSUMER_SECRET)
-      .setCallbackFunction('authCallback')
-      .setPropertyStore(PropertiesService.getUserProperties());
-}
-
-global.authCallback = (request) => {
-  var service = getTumblrService();
-  var isAuthorized = service.handleCallback(request);
-  if (isAuthorized) {
-    return HtmlService.createHtmlOutput('Success! You can close this tab.');
-  } else {
-    return HtmlService.createHtmlOutput('Denied. You can close this tab');
-  }
-}
-
-global.getSheet = () => {
-  var SPREADSHEET_ID = scriptProperties.getProperty("spreadsheet_id");
-
-  var spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
-  Logger.log(spreadsheet);
-  
-  var sheet = spreadsheet.getSheetByName('Instagram');
-  Logger.log(sheet);
-  
-  return sheet;
-}
-
-global.getWashromSheet = () => {
-  var SPREADSHEET_ID = scriptProperties.getProperty("spreadsheet_id");
-
-  var spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
-  Logger.log(spreadsheet);
-  
-  var sheet = spreadsheet.getSheetByName('Washroom');
-  Logger.log(sheet);
-  
-  return sheet;
-}
-
-global.checkIfDone = (sheet, row) => {
-  var rowToStart = 0;
-  
-  for (var i = row; i > 0; i --){
-    var isDone = checkCell(sheet, i);
-    if(isDone) {
-      rowToStart = i + 1;
-      Logger.log("IsDone = " + isDone);
-      break;
+    if (firstRow != 0) {
+      this._goPosts(this.sheet, firstRow, this.lastRow);
     }
   }
-  
-  return rowToStart;
-}
 
-global.checkCell = (sheet, row) => {
-  Logger.log('Row=' + row);
-  var isDone = sheet.getRange(row, 13).getValue();
-  Logger.log('checkyou=' + isDone);
-  
-  var isExist;
-  
-  if(isDone == '') {
-    Logger.log('Nothing');
-    isExist = false;
-  } else {
-    Logger.log('Exists');
-    isExist = true;
+  /**
+   * init spreadsheet
+   * @param { }
+   */
+  _init() {
+    // SpreadSheet
+    SpreadsheetsUtil.init();
+    this.spreadsheet = SpreadsheetsUtil.getSpreadSheet();
+    Logger.log(this.TAG + "init() speradsheet=" + this.spreadsheet);
+
+    // sheet
+    this.sheet = this.spreadsheet.getSheetByName(this.SHEET_NAME);
+    Logger.log(this.TAG + "init() sheet= " + this.sheet);
+
+    // last row
+    this.lastRow = this.sheet.getLastRow();
+    Logger.log(this.TAG + "init() lastRow=  " + this.lastRow);
   }
-  return isExist;
-}
 
-global.getInstagramLinkText = (from) => {
-  Logger.log('from=' + from);
-  var text = "\n"; 
-  var userName = from.substr(1);
-  text += "from "; 
-  text += '<a href="https://www.instagram.com/' + userName + '/">'
-  text += from;
-  text += '</a>'
-  return text;
-}
+  _checkIfDone(row) {
+    let rowToStart = 0;
+    Logger.log(this.TAG + "_checkIfDone() row=" + row);
 
-global.getFBGroupLinkText = (via) => {
-  Logger.log('Via=' + via);
-  var text = "\n"; 
-  text += "via "; 
-  text += '<a href="https://www.facebook.com/groups/washroom.of.the.day/">'
-  text += via;
-  text += '</a>'
-  return text;
-}
+    for (var i = row; i > 0; i--) {
+      var isDone = this._checkCell(i);
+      if (isDone) {
+        rowToStart = i + 1;
+        Logger.log("IsDone = " + isDone);
+        break;
+      }
+    }
+    return rowToStart;
+  }
 
+  /**
+   * check if the row is done or not
+   * @param { number } row the row to check
+   * @return { boolean } isDone
+   */
+  _checkCell(row) {
+    // Get Name value to test
+    const cellValue = this.sheet.getRange(row, this.DONE_COL).getValue();
+    Logger.log(this.TAG + "_checkCell() cellValue=" + cellValue);
+
+    let isDone = false;
+    if (cellValue !== '') {
+      isDone = true;
+    }
+    Logger.log(this.TAG + '_checkCell() isDone= ' + isDone);
+    return isDone;
+  }
+
+  _goPosts(sheet, firstRow, lastRow) {
+    for (let i = firstRow; i < lastRow + 1; i++) {
+      Logger.log(this.TAG + '_goPosts() isDone= ' + "Post:" + i);
+      this._tumblrPost(sheet, i);
+    }
+  }
+
+  _tumblrPost(sheet, row) {
+    Logger.log(row);
+
+    const service = TumblrUtil.getTumblrService(this.CONSUMER_KEY, this.CONSUMER_SECRET);
+    // Logger.log(service);
+
+    const name = sheet.getRange(row, this.NAME_COL).getValue();
+    const country = sheet.getRange(row, this.COUNTRY_COL).getValue();
+    const city = sheet.getRange(row, this.CITY_COL).getValue();
+    let caption = name + "\n" + city + " " + country;
+    const source = sheet.getRange(row, this.SOURCE_COL).getValue();
+    const tags = sheet.getRange(row, this.TAGS_COL).getValue();
+
+    const from = sheet.getRange(row, this.USER_INSTAGRAM_COL).getValue();
+    const via = sheet.getRange(row, this.FB_GROUP_COL).getValue();
+
+    Logger.log('from' + from);
+    Logger.log('via' + via);
+
+    if (from != '#N/A') {
+      Logger.log('From exists' + from);
+      // Add Instagram link text
+      caption += this._getInstagramLinkText(from);
+    } else if (via != '#N/A') {
+      Logger.log('Via Exists' + via);
+      // Add FB Group link text
+      caption += this._getFBGroupLinkText(via);
+    }
+
+    const options =
+      {
+        "oAuthServiceName": "tumblr",
+        "oAuthUseToken": "always",
+        "method": "POST",
+        "payload": {
+          "type": "photo",
+          "caption": caption,
+          "source": source,
+          "tags": tags
+        }
+      };
+
+    if (service.hasAccess()) {
+      const response = service.fetch(this.BLOG_POST_URL, options);
+      Logger.log(response);
+      this._setDoneNumber(sheet, row);
+
+      var date = sheet.getRange(row, this.DATE_COL).getValue();
+      var lat = sheet.getRange(row, this.LATITUDE_COL).getValue();
+      var lon = sheet.getRange(row, this.LONGITUDE_COL).getValue();
+      var address = sheet.getRange(row, this.ADDRESS_COL).getValue();
+      var insta = sheet.getRange(row, this.USER_INSTAGRAM_COL).getValue();
+
+      this._copyCell(date, name, lat, lon, address, country, city, insta);
+
+    } else {
+      var authorizationUrl = service.authorize();
+      Logger.log('Please visit the following URL and then re-run the script: ' + authorizationUrl);
+    }
+  }
+
+  /*
+   * Set Done Number as it's done.
+   *
+   */
+  _setDoneNumber(sheet, row) {
+    sheet.getRange(row, this.DONE_COL).setValue(1);
+    Logger.log(this.TAG + '_setDoneNumber() row= ' + row);
+  }
+
+  _copyCell(date, name, lat, lon, address, country, city, insta) {
+    var sheet = this._getWashromSheet();
+    var row = sheet.getLastRow() + 1;
+    Logger.log(this.TAG + '_setDoneNumber() sheet= ' + sheet);
+    Logger.log(this.TAG + '_setDoneNumber() row= ' + row);
+
+    sheet.getRange(row, 2).setValue(date);
+    sheet.getRange(row, 3).setValue(name);
+    sheet.getRange(row, 4).setValue(lat);
+    sheet.getRange(row, 5).setValue(lon);
+    sheet.getRange(row, 6).setValue(address);
+    sheet.getRange(row, 7).setValue(country);
+    sheet.getRange(row, 8).setValue(city);
+    sheet.getRange(row, 9).setValue(insta);
+    Logger.log('Set Done Number on' + row);
+  }
+
+  _getWashromSheet() {
+    var sheet = this.spreadsheet.getSheetByName('Washroom');
+    Logger.log(sheet);
+
+    return sheet;
+  }
+
+  _getInstagramLinkText(from) {
+    Logger.log('from=' + from);
+    var text = "\n";
+    var userName = from.substr(1);
+    text += "from ";
+    text += '<a href="https://www.instagram.com/' + userName + '/">'
+    text += from;
+    text += '</a>'
+    return text;
+  }
+
+  _getFBGroupLinkText(via) {
+    Logger.log('Via=' + via);
+    var text = "\n";
+    text += "via ";
+    text += '<a href="https://www.facebook.com/groups/washroom.of.the.day/">'
+    text += via;
+    text += '</a>'
+    return text;
+  }
+}

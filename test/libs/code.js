@@ -1,7 +1,7 @@
 import chai from 'chai'
-import hello from '../dev/hello'
-import Month from '../dev/libs/util/Month'
-import InstagramUtil from '../dev/libs/Instagram/InstagramUtil'
+import hello from '../../dev/Hello'
+import Month from '../../dev/libs/util/Month'
+import InstagramUtil from '../../dev/libs/Instagram/InstagramUtil'
 
 
 var should = chai.should();
