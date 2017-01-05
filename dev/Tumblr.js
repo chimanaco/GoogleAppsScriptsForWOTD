@@ -1,5 +1,5 @@
-import SpreadsheetsUtil from './libs/Google/SpreadsheetsUtil';
-import TumblrUtil from './libs/Tumblr/TumblrUtil';
+import GASSpreadsheets from './libs/GAS/Google/GASSpreadsheets';
+import GASTumblr from './libs/GAS/Tumblr/GASTumblr';
 import consts from './Consts';
 
 export default class Tumblr {
@@ -30,7 +30,7 @@ export default class Tumblr {
     Logger.log(this.TAG + "_checkIfDone() row=" + row);
 
     for (let i = row; i > 0; i--) {
-      const isDone = SpreadsheetsUtil.checkIfCellHasValue(this.sheet, i, this.consts.DONE_COL);
+      const isDone = GASSpreadsheets.checkIfCellHasValue(this.sheet, i, this.consts.DONE_COL);
       if (isDone) {
         rowToStart = i + 1;
         Logger.log("IsDone = " + isDone);
@@ -50,7 +50,7 @@ export default class Tumblr {
   _tumblrPost(sheet, row) {
     Logger.log(row);
 
-    const service = TumblrUtil.getTumblrService(this.consts.CONSUMER_KEY, this.consts.CONSUMER_SECRET);
+    const service = GASTumblr.getTumblrService(this.consts.CONSUMER_KEY, this.consts.CONSUMER_SECRET);
     // Logger.log(service);
 
     const name = sheet.getRange(row, this.consts.NAME_COL).getValue();
@@ -118,8 +118,8 @@ export default class Tumblr {
   }
 
   _copyCell(date, name, lat, lon, address, country, city, insta) {
-    const sheet = SpreadsheetsUtil.getSheetByName(this.SPREADSHEET, 'Washroom');
-    const row = SpreadsheetsUtil.getLastRow(sheet) + 1;
+    const sheet = GASSpreadsheets.getSheetByName(this.SPREADSHEET, 'Washroom');
+    const row = GASSpreadsheets.getLastRow(sheet) + 1;
 
     Logger.log(this.TAG + '_setDoneNumber() sheet= ' + sheet);
     Logger.log(this.TAG + '_setDoneNumber() row= ' + row);

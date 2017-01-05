@@ -1,7 +1,4 @@
-export default class S3Util {
-  constructor() {
-  }
-
+export default class GASS3 {
   /**
    * Get S3 Instance
    * @param {string} awsAccesskeyId string

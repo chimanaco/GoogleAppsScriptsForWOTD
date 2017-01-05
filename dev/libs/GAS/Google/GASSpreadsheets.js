@@ -1,4 +1,4 @@
-export default class SpreadsheetsUtil {
+export default class GASSpreadsheets {
   /**
    * Get a spreadsheet
    * @param { string } spreadSheetId

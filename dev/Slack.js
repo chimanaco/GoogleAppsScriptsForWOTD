@@ -1,4 +1,4 @@
-import MailUtil from './libs/Google/MailUtil';
+import MailUtil from './libs/GAS/Google/GASMail';
 import consts from './Consts';
 
 export default class Slack {
@@ -115,7 +115,7 @@ export default class Slack {
   }
 
   getEndTs(val) {
-    var endDate = new Date(val);
+    const endDate = new Date(val);
     endDate.setHours(23);
     endDate.setMinutes(59);
     endDate.setSeconds(59);

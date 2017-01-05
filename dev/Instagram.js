@@ -1,6 +1,6 @@
-import MapsUtil from './libs/Google/MapsUtil.js';
-import SpreadsheetsUtil from './libs/Google/SpreadsheetsUtil';
-import InstagramUtil from './libs/Instagram/InstagramUtil';
+import GASMaps from './libs/GAS/Google/GASMaps';
+import GASSpreadsheets from './libs/GAS/Google/GASSpreadsheets';
+import GASInstagram from './libs/GAS/Instagram/GASInstagram';
 import consts from './Consts';
 
 export default class Instagram {
@@ -18,7 +18,7 @@ export default class Instagram {
    * @param { }
    */
   writeData() {
-    const isNameExists = SpreadsheetsUtil.checkIfCellHasValue(this.sheet, this.lastRow, this.consts.NAME_COL);
+    const isNameExists = GASSpreadsheets.checkIfCellHasValue(this.sheet, this.lastRow, this.consts.NAME_COL);
     Logger.log(`${this.TAG}, writeData() isNameExists=(), ${isNameExists}`);
 
     if (!isNameExists) {
@@ -36,11 +36,11 @@ export default class Instagram {
     const url = sheet.getRange(row, this.consts.URL_COL).getValue();
     Logger.log(`${this.TAG}, writeInformationOnRow() url=(), ${url}`);
 
-    const photoData = InstagramUtil.getData(url, this.consts.INSTAGRAM_ACCESS_TOKEN);
+    const photoData = GASInstagram.getData(url, this.consts.INSTAGRAM_ACCESS_TOKEN);
     const name = photoData.location.name;
     const latitude = photoData.location.latitude;
     const longitude = photoData.location.longitude;
-    const tagString = InstagramUtil.getTagsAsString(photoData.tags);
+    const tagString = GASInstagram.getTagsAsString(photoData.tags);
 
     sheet.getRange(row, this.consts.NAME_COL).setValue(name);
     sheet.getRange(row, this.consts.LATITUDE_COL).setValue(latitude);
@@ -74,7 +74,7 @@ export default class Instagram {
    * @param { number } longitude
    */
   writeLocation(sheet, row, latitude, longitude) {
-    const address = MapsUtil.getStreetAddress(latitude, longitude);
+    const address = GASMaps.getStreetAddress(latitude, longitude);
     Logger.log(`${this.TAG}, writeLocation() address=, ${address}`);
     this.writeAddress(sheet, row, address);
     this.writeCountry(sheet, row, address);
@@ -147,7 +147,7 @@ export default class Instagram {
     const date = sheet.getRange(row, this.consts.ORG_DATE_COL).getValue();
     Logger.log(`${this.TAG}, convertDate() date=, ${date}`);
 
-    const newDate = InstagramUtil.getConvertedDate(date);
+    const newDate = GASInstagram.getConvertedDate(date);
     Logger.log(`${this.TAG}, convertDate() newDate=, ${newDate}`);
 
     return newDate;

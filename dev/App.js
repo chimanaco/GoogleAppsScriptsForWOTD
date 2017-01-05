@@ -1,4 +1,4 @@
-import SpreadsheetsUtil from './libs/Google/SpreadsheetsUtil';
+import GASSpreadsheets from './libs/GAS/Google/GASSpreadsheets';
 import Instagram from './Instagram';
 import Tumblr from './Tumblr';
 import Slack from './Slack';
@@ -28,7 +28,7 @@ export default class App {
     const SPREADSHEET_ID = SCRIPT_PROPERTIES.getProperty('spreadsheet_id');
 
     // SpreadSheet
-    this.SPREADSHEET = SpreadsheetsUtil.getSpreadSheetById(SPREADSHEET_ID);
+    this.SPREADSHEET = GASSpreadsheets.getSpreadSheetById(SPREADSHEET_ID);
     Logger.log(`${this.TAG}, setConstsValues() speradsheet=, ${this.SPREADSHEET}`);
 
     // Slack
@@ -83,8 +83,8 @@ export default class App {
   writeDataFromInstagramInfo() {
     Logger.log(`${this.TAG}, writeDataFromInstagramInfo()`);
 
-    const sheet = SpreadsheetsUtil.getSheetByName(this.SPREADSHEET, 'Instagram');
-    const lastRow = SpreadsheetsUtil.getLastRow(sheet);
+    const sheet = GASSpreadsheets.getSheetByName(this.SPREADSHEET, 'Instagram');
+    const lastRow = GASSpreadsheets.getLastRow(sheet);
 
     const instagram = new Instagram(sheet, lastRow);
     instagram.writeData();
@@ -93,8 +93,8 @@ export default class App {
 
   postToTumblr() {
     Logger.log(`${this.TAG}, postToTumblr()`);
-    const sheet = SpreadsheetsUtil.getSheetByName(this.SPREADSHEET, 'Instagram');
-    const lastRow = SpreadsheetsUtil.getLastRow(sheet);
+    const sheet = GASSpreadsheets.getSheetByName(this.SPREADSHEET, 'Instagram');
+    const lastRow = GASSpreadsheets.getLastRow(sheet);
 
     const tumblr = new Tumblr(sheet, lastRow);
     tumblr.writeData();
@@ -103,8 +103,8 @@ export default class App {
 
   scrapeInstagramImageViaSlack() {
     Logger.log(`${this.TAG}, scrapeInstagramImageViaSlack()`);
-    const sheet = SpreadsheetsUtil.getSheetByName(this.SPREADSHEET, 'others');
-    const lastRow = SpreadsheetsUtil.getLastRow(sheet);
+    const sheet = GASSpreadsheets.getSheetByName(this.SPREADSHEET, 'others');
+    const lastRow = GASSpreadsheets.getLastRow(sheet);
 
     const slack = new Slack(sheet, lastRow);
     slack.start();
