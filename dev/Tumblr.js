@@ -1,36 +1,15 @@
 import SpreadsheetsUtil from './libs/Google/SpreadsheetsUtil';
 import TumblrUtil from './libs/Tumblr/TumblrUtil';
+import consts from './Consts';
 
 export default class Tumblr {
-  constructor() {
+  constructor(sheet, lastRow) {
     this.TAG = 'Tumblr ';
-    Logger.log(this.TAG + "constructor");
+    Logger.log(`${this.TAG}, constructor`);
+    this.consts = consts.getAll();
 
-    this.SCRIPT_PROPERTIES = PropertiesService.getScriptProperties();
-    this.SHEET_NAME = this.SCRIPT_PROPERTIES.getProperty("sheet_name");
-    this.CONSUMER_KEY = this.SCRIPT_PROPERTIES.getProperty("tumblr_consumer_key");
-    this.CONSUMER_SECRET = this.SCRIPT_PROPERTIES.getProperty("tumblr_consumer_secret");
-
-    // Logger.log(this.TAG + "constructor config" + Config.srcDir)
-    this.BLOG_POST_URL = "https://api.tumblr.com/v2/blog/washroomoftheday.tumblr.com/post";
-
-    //
-
-    // TODO: Move to Singleton
-    this.SOURCE_COL = 4;
-    this.DATE_COL = 5;
-    this.NAME_COL = 6;
-    this.LATITUDE_COL = 7;
-    this.LONGITUDE_COL = 8;
-    this.ADDRESS_COL = 9;
-    this.COUNTRY_COL = 10;
-    this.CITY_COL = 11;
-    this.TAGS_COL = 12;
-    this.DONE_COL = 13;
-    this.USER_INSTAGRAM_COL = 14;
-    this.FB_GROUP_COL = 15;
-
-    this._init();
+    this.sheet = sheet;
+    this.lastRow = lastRow;
   }
 
   /**
@@ -46,31 +25,12 @@ export default class Tumblr {
     }
   }
 
-  /**
-   * init spreadsheet
-   * @param { }
-   */
-  _init() {
-    // SpreadSheet
-    SpreadsheetsUtil.init();
-    this.spreadsheet = SpreadsheetsUtil.getSpreadSheet();
-    Logger.log(this.TAG + "init() speradsheet=" + this.spreadsheet);
-
-    // sheet
-    this.sheet = this.spreadsheet.getSheetByName(this.SHEET_NAME);
-    Logger.log(this.TAG + "init() sheet= " + this.sheet);
-
-    // last row
-    this.lastRow = this.sheet.getLastRow();
-    Logger.log(this.TAG + "init() lastRow=  " + this.lastRow);
-  }
-
   _checkIfDone(row) {
     let rowToStart = 0;
     Logger.log(this.TAG + "_checkIfDone() row=" + row);
 
-    for (var i = row; i > 0; i--) {
-      var isDone = this._checkCell(i);
+    for (let i = row; i > 0; i--) {
+      const isDone = SpreadsheetsUtil.checkIfCellHasValue(this.sheet, i, this.consts.DONE_COL);
       if (isDone) {
         rowToStart = i + 1;
         Logger.log("IsDone = " + isDone);
@@ -78,24 +38,6 @@ export default class Tumblr {
       }
     }
     return rowToStart;
-  }
-
-  /**
-   * check if the row is done or not
-   * @param { number } row the row to check
-   * @return { boolean } isDone
-   */
-  _checkCell(row) {
-    // Get Name value to test
-    const cellValue = this.sheet.getRange(row, this.DONE_COL).getValue();
-    Logger.log(this.TAG + "_checkCell() cellValue=" + cellValue);
-
-    let isDone = false;
-    if (cellValue !== '') {
-      isDone = true;
-    }
-    Logger.log(this.TAG + '_checkCell() isDone= ' + isDone);
-    return isDone;
   }
 
   _goPosts(sheet, firstRow, lastRow) {
@@ -108,18 +50,18 @@ export default class Tumblr {
   _tumblrPost(sheet, row) {
     Logger.log(row);
 
-    const service = TumblrUtil.getTumblrService(this.CONSUMER_KEY, this.CONSUMER_SECRET);
+    const service = TumblrUtil.getTumblrService(this.consts.CONSUMER_KEY, this.consts.CONSUMER_SECRET);
     // Logger.log(service);
 
-    const name = sheet.getRange(row, this.NAME_COL).getValue();
-    const country = sheet.getRange(row, this.COUNTRY_COL).getValue();
-    const city = sheet.getRange(row, this.CITY_COL).getValue();
+    const name = sheet.getRange(row, this.consts.NAME_COL).getValue();
+    const country = sheet.getRange(row, this.consts.COUNTRY_COL).getValue();
+    const city = sheet.getRange(row, this.consts.CITY_COL).getValue();
     let caption = name + "\n" + city + " " + country;
-    const source = sheet.getRange(row, this.SOURCE_COL).getValue();
-    const tags = sheet.getRange(row, this.TAGS_COL).getValue();
+    const source = sheet.getRange(row, this.consts.SOURCE_COL).getValue();
+    const tags = sheet.getRange(row, this.consts.TAGS_COL).getValue();
 
-    const from = sheet.getRange(row, this.USER_INSTAGRAM_COL).getValue();
-    const via = sheet.getRange(row, this.FB_GROUP_COL).getValue();
+    const from = sheet.getRange(row, this.consts.USER_INSTAGRAM_COL).getValue();
+    const via = sheet.getRange(row, this.consts.FB_GROUP_COL).getValue();
 
     Logger.log('from' + from);
     Logger.log('via' + via);
@@ -148,15 +90,15 @@ export default class Tumblr {
       };
 
     if (service.hasAccess()) {
-      const response = service.fetch(this.BLOG_POST_URL, options);
+      const response = service.fetch(this.consts.BLOG_POST_URL, options);
       Logger.log(response);
       this._setDoneNumber(sheet, row);
 
-      var date = sheet.getRange(row, this.DATE_COL).getValue();
-      var lat = sheet.getRange(row, this.LATITUDE_COL).getValue();
-      var lon = sheet.getRange(row, this.LONGITUDE_COL).getValue();
-      var address = sheet.getRange(row, this.ADDRESS_COL).getValue();
-      var insta = sheet.getRange(row, this.USER_INSTAGRAM_COL).getValue();
+      var date = sheet.getRange(row, this.consts.DATE_COL).getValue();
+      var lat = sheet.getRange(row, this.consts.LATITUDE_COL).getValue();
+      var lon = sheet.getRange(row, this.consts.LONGITUDE_COL).getValue();
+      var address = sheet.getRange(row, this.consts.ADDRESS_COL).getValue();
+      var insta = sheet.getRange(row, this.consts.USER_INSTAGRAM_COL).getValue();
 
       this._copyCell(date, name, lat, lon, address, country, city, insta);
 
@@ -171,13 +113,14 @@ export default class Tumblr {
    *
    */
   _setDoneNumber(sheet, row) {
-    sheet.getRange(row, this.DONE_COL).setValue(1);
+    sheet.getRange(row, this.consts.DONE_COL).setValue(1);
     Logger.log(this.TAG + '_setDoneNumber() row= ' + row);
   }
 
   _copyCell(date, name, lat, lon, address, country, city, insta) {
-    var sheet = this._getWashromSheet();
-    var row = sheet.getLastRow() + 1;
+    const sheet = SpreadsheetsUtil.getSheetByName(this.SPREADSHEET, 'Washroom');
+    const row = SpreadsheetsUtil.getLastRow(sheet) + 1;
+
     Logger.log(this.TAG + '_setDoneNumber() sheet= ' + sheet);
     Logger.log(this.TAG + '_setDoneNumber() row= ' + row);
 
@@ -190,13 +133,6 @@ export default class Tumblr {
     sheet.getRange(row, 8).setValue(city);
     sheet.getRange(row, 9).setValue(insta);
     Logger.log('Set Done Number on' + row);
-  }
-
-  _getWashromSheet() {
-    var sheet = this.spreadsheet.getSheetByName('Washroom');
-    Logger.log(sheet);
-
-    return sheet;
   }
 
   _getInstagramLinkText(from) {

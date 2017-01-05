@@ -4,20 +4,20 @@ import Tumblr from './Tumblr';
 import Slack from './Slack';
 import consts from './Consts';
 
-let _appInstance = null;
+let appInstance = null;
 export default class App {
   constructor() {
     this.TAG = 'App ';
-    Logger.log(this.TAG + "Constructor");
+    Logger.log(`${this.TAG}, constructor`);
 
-    if (_appInstance !== null) {
-      Logger.log("Do App.getInstance()");
-      throw new Error("Do App.getInstance()");
+    if (appInstance !== null) {
+      Logger.log('Do App.getInstance()');
+      throw new Error('Do App.getInstance()');
     }
 
-    if (_appInstance === null) {
-      Logger.log(this.TAG + "No Instance yet");
-      _appInstance = this;
+    if (appInstance === null) {
+      Logger.log(`${this.TAG}, No Instance yet`);
+      appInstance = this;
 
       this.setConstsValues();
     }
@@ -25,31 +25,36 @@ export default class App {
 
   setConstsValues() {
     const SCRIPT_PROPERTIES = PropertiesService.getScriptProperties();
-    // Configuration: Obtain Slack web API token at https://api.slack.com/web
+    const SPREADSHEET_ID = SCRIPT_PROPERTIES.getProperty('spreadsheet_id');
 
     // SpreadSheet
-    SpreadsheetsUtil.init();
-    const SPREADSHEET = SpreadsheetsUtil.getSpreadSheet();
-    Logger.log(`${this.TAG}, init() speradsheet=, ${SPREADSHEET}`);
+    this.SPREADSHEET = SpreadsheetsUtil.getSpreadSheetById(SPREADSHEET_ID);
+    Logger.log(`${this.TAG}, setConstsValues() speradsheet=, ${this.SPREADSHEET}`);
 
     // Slack
+    // Configuration: Obtain Slack web API token at https://api.slack.com/web
     const SLACK_API_TOKEN = SCRIPT_PROPERTIES.getProperty('slack_api_token');
     if (!SLACK_API_TOKEN) {
       throw 'You should set "slack_api_token" property from [File] > [Project properties] > [Script properties]';
     }
-    const SLACK_CHANNEL = SCRIPT_PROPERTIES.getProperty("slack_channel");
-    Logger.log(this.TAG + "start() CHANNEL=  " + SLACK_CHANNEL);
+    const SLACK_CHANNEL = SCRIPT_PROPERTIES.getProperty('slack_channel');
+    Logger.log(`${this.TAG}, setConstsValues() CHANNEL=, ${SLACK_CHANNEL}`);
 
     // Instagram
-    const ACCESS_TOKEN = SCRIPT_PROPERTIES.getProperty("instagram_access_token");
-
+    const ACCESS_TOKEN = SCRIPT_PROPERTIES.getProperty('instagram_access_token');
+    const TUMBLR_CONSUMER_KEY = SCRIPT_PROPERTIES.getProperty('tumblr_consumer_key');
+    const TUMBLR_CONSUMER_SECRET = SCRIPT_PROPERTIES.getProperty('tumblr_consumer_secret');
+    const TUMBLR_POST_URL = 'https://api.tumblr.com/v2/blog/washroomoftheday.tumblr.com/post';
 
     // コンテナにキーと値をセット
     consts.set('SCRIPT_PROPERTIES', SCRIPT_PROPERTIES);
-    consts.set('SPREADSHEET', SPREADSHEET);
+    consts.set('SPREADSHEET', this.SPREADSHEET);
     consts.set('SLACK_API_TOKEN', SLACK_API_TOKEN);
     consts.set('SLACK_CHANNEL', SLACK_CHANNEL);
     consts.set('INSTAGRAM_ACCESS_TOKEN', ACCESS_TOKEN);
+    consts.set('TUMBLR_CONSUMER_KEY', TUMBLR_CONSUMER_KEY);
+    consts.set('TUMBLR_CONSUMER_SECRET', TUMBLR_CONSUMER_SECRET);
+    consts.set('TUMBLR_POST_URL', TUMBLR_POST_URL);
 
     consts.set('ORG_DATE_COL', 1);
     consts.set('URL_COL', 3);
@@ -68,31 +73,41 @@ export default class App {
   }
 
   static getInstance() {
-    if (_appInstance === null) {
-      Logger.log(this.TAG + "Go to Constructor");
-      _appInstance = new App();
+    if (appInstance === null) {
+      Logger.log(`${this.TAG}, Go to Constructor`);
+      appInstance = new App();
     }
-    return _appInstance;
+    return appInstance;
   }
 
-  fetchInstagram() {
-    Logger.log(this.TAG + "fetch");
-    const instagram = new Instagram();
+  writeDataFromInstagramInfo() {
+    Logger.log(`${this.TAG}, writeDataFromInstagramInfo()`);
+
+    const sheet = SpreadsheetsUtil.getSheetByName(this.SPREADSHEET, 'Instagram');
+    const lastRow = SpreadsheetsUtil.getLastRow(sheet);
+
+    const instagram = new Instagram(sheet, lastRow);
     instagram.writeData();
-    Logger.log(this.TAG + "getData done");
+    Logger.log(`${this.TAG}, writeDataFromInstagramInfo() done`);
   }
 
-  startTumblr() {
-    Logger.log(this.TAG + "Tumblr post");
-    const tumblr = new Tumblr();
+  postToTumblr() {
+    Logger.log(`${this.TAG}, postToTumblr()`);
+    const sheet = SpreadsheetsUtil.getSheetByName(this.SPREADSHEET, 'Instagram');
+    const lastRow = SpreadsheetsUtil.getLastRow(sheet);
+
+    const tumblr = new Tumblr(sheet, lastRow);
     tumblr.writeData();
-    Logger.log(this.TAG + "Tumblr post done");
+    Logger.log(`${this.TAG}, postToTumblr() done`);
   }
 
-  startSlack() {
-    Logger.log(this.TAG + "startSlack");
-    const slack = new Slack();
+  scrapeInstagramImageViaSlack() {
+    Logger.log(`${this.TAG}, scrapeInstagramImageViaSlack()`);
+    const sheet = SpreadsheetsUtil.getSheetByName(this.SPREADSHEET, 'others');
+    const lastRow = SpreadsheetsUtil.getLastRow(sheet);
+
+    const slack = new Slack(sheet, lastRow);
     slack.start();
-    Logger.log(this.TAG + "startSlack done");
+    Logger.log(`${this.TAG}, scrapeInstagramImageViaSlack() done`);
   }
 };

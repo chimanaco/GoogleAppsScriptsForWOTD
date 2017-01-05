@@ -1,18 +1,17 @@
 import App from './App';
 
-var TAG = 'main ';
+const TAG = 'main ';
+const app = App.getInstance();
 
-/* fetch instagram
+/* write data from Instagram info
  *
  * @param { }
  * @return { }
  */
-global.fetchInstagram = () => {
-  Logger.log(TAG + 'get app instance()');
-  const app = App.getInstance();
-  Logger.log(TAG + 'app fetch instance()');
-  app.fetchInstagram();
-  Logger.log(TAG + 'fetchInstagram done!()');
+global.writeDataFromInstagramInfo = () => {
+  Logger.log(`${TAG}, writeDataFromInstagramInfo()`);
+  app.writeDataFromInstagramInfo();
+  Logger.log(`${TAG}, writeDataFromInstagramInfo() done`);
 }
 
 /* post to Tumblr
@@ -20,25 +19,22 @@ global.fetchInstagram = () => {
  * @param { }
  * @return { }
  */
-global.startTumblr = () => {
-  Logger.log(TAG + 'get app instance()');
-  const app = App.getInstance();
-  Logger.log(TAG + 'app tumblr start()');
-  app.startTumblr();
-  Logger.log(TAG + 'startTumblr done!()');
+global.postToTumblr = () => {
+  Logger.log(`${TAG}, postToTumblr()`);
+  app.postToTumblr();
+  Logger.log(`${TAG}, postToTumblr() done`);
 }
 
-/* post to Tumblr
+/* Scrape Instagram Image via Slack
  *
  * @param { }
  * @return { }
  */
-global.startSlack = () => {
-  Logger.log(TAG + 'get app instance()');
-  const app = App.getInstance();
-  Logger.log(TAG + 'app slack start()');
-  app.startSlack();
-  Logger.log(TAG + 'startslack done!()');
+// global.startSlack = () => {
+global.scrapeInstagramImageViaSlack = () => {
+  Logger.log(`${TAG}, scrapeInstagramImageViaSlack()`);
+  app.scrapeInstagramImageViaSlack();
+  Logger.log(`${TAG}, scrapeInstagramImageViaSlack() done`);
 }
 
 
