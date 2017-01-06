@@ -1,4 +1,4 @@
-import MailUtil from './libs/GAS/Google/GASMail';
+import GASMail from './libs/GAS/Google/GASMail';
 import consts from './Consts';
 
 export default class Slack {
@@ -10,7 +10,6 @@ export default class Slack {
 
     this.sheet = sheet;
     this.lastRow = lastRow;
-
     this.OTHERS_DATE_CELL = 'A1';
     this.OTHERS_DATE_COL = 1;
     this.OTHERS_URL_COL = 2;
@@ -131,6 +130,6 @@ export default class Slack {
     // Get An image
     const image = UrlFetchApp.fetch(imgPath);
 
-    MailUtil.send(strTo, strSubject, strBody, [image.getBlob().setName('wotd.jpg')]);
+    GASMail.send(strTo, strSubject, strBody, [image.getBlob().setName('wotd.jpg')]);
   }
 }

@@ -18,22 +18,22 @@ export default class Tumblr {
    */
   writeData() {
     const firstRow = this._checkIfDone(this.lastRow);
-    Logger.log("First Row = " + firstRow);
+    Logger.log(`${this.TAG}, firstRow() firstRow=, ${firstRow}`);
 
-    if (firstRow != 0) {
+    if (firstRow !== 0) {
       this._goPosts(this.sheet, firstRow, this.lastRow);
     }
   }
 
   _checkIfDone(row) {
     let rowToStart = 0;
-    Logger.log(this.TAG + "_checkIfDone() row=" + row);
+    Logger.log(`${this.TAG}, _checkIfDone() row=, ${row}`);
 
     for (let i = row; i > 0; i--) {
       const isDone = GASSpreadsheets.checkIfCellHasValue(this.sheet, i, this.consts.DONE_COL);
       if (isDone) {
         rowToStart = i + 1;
-        Logger.log("IsDone = " + isDone);
+        Logger.log(`${this.TAG}, IsDone()=, ${isDone}`);
         break;
       }
     }
@@ -42,16 +42,16 @@ export default class Tumblr {
 
   _goPosts(sheet, firstRow, lastRow) {
     for (let i = firstRow; i < lastRow + 1; i++) {
-      Logger.log(this.TAG + '_goPosts() isDone= ' + "Post:" + i);
+      Logger.log(`${this.TAG}, _goPosts() isDone=Post:, ${i}`);
       this._tumblrPost(sheet, i);
     }
   }
 
   _tumblrPost(sheet, row) {
-    Logger.log(row);
+    Logger.log(`${this.TAG}, _tumblrPost() row=, ${row}`);
 
-    const service = GASTumblr.getTumblrService(this.consts.CONSUMER_KEY, this.consts.CONSUMER_SECRET);
-    // Logger.log(service);
+    const service = GASTumblr.getTumblrService(this.consts.TUMBLR_CONSUMER_KEY, this.consts.TUMBLR_CONSUMER_SECRET);
+    Logger.log(`${this.TAG}, _tumblrPost() service=, ${service}`);
 
     const name = sheet.getRange(row, this.consts.NAME_COL).getValue();
     const country = sheet.getRange(row, this.consts.COUNTRY_COL).getValue();
@@ -78,19 +78,23 @@ export default class Tumblr {
 
     const options =
       {
-        "oAuthServiceName": "tumblr",
-        "oAuthUseToken": "always",
-        "method": "POST",
-        "payload": {
-          "type": "photo",
-          "caption": caption,
-          "source": source,
-          "tags": tags
+        oAuthServiceName: 'tumblr',
+        oAuthUseToken: 'always',
+        method: 'POST',
+        payload: {
+          type: 'photo',
+          caption: caption,
+          source: source,
+          tags: tags
         }
       };
 
+    Logger.log(`${this.TAG}, _tumblrPost() options=, ${options}`);
+
     if (service.hasAccess()) {
-      const response = service.fetch(this.consts.BLOG_POST_URL, options);
+      Logger.log(`${this.TAG}, _tumblrPost() service=, ${service}`);
+
+      const response = service.fetch(this.consts.TUMBLR_POST_URL, options);
       Logger.log(response);
       this._setDoneNumber(sheet, row);
 
@@ -118,11 +122,11 @@ export default class Tumblr {
   }
 
   _copyCell(date, name, lat, lon, address, country, city, insta) {
-    const sheet = GASSpreadsheets.getSheetByName(this.SPREADSHEET, 'Washroom');
+    const sheet = GASSpreadsheets.getSheetByName(this.consts.SPREADSHEET, 'Washroom');
     const row = GASSpreadsheets.getLastRow(sheet) + 1;
 
-    Logger.log(this.TAG + '_setDoneNumber() sheet= ' + sheet);
-    Logger.log(this.TAG + '_setDoneNumber() row= ' + row);
+    Logger.log(this.TAG + '_copyCell() sheet= ' + sheet);
+    Logger.log(this.TAG + '_copyCell() row= ' + row);
 
     sheet.getRange(row, 2).setValue(date);
     sheet.getRange(row, 3).setValue(name);

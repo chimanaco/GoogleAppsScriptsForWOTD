@@ -5,8 +5,8 @@ export default class GASMaps {
    * @param { number } lat latitude
    */
   static getStreetAddress(long, lat) {
-    var response = Maps.newGeocoder().reverseGeocode(long, lat);
-    if (response.status === "OK") {
+    const response = Maps.newGeocoder().reverseGeocode(long, lat);
+    if (response.status === 'OK') {
       return response.results[0].formatted_address;
     }
     return null;

@@ -1,7 +1,7 @@
 import App from './App';
 
 const TAG = 'main ';
-const app = App.getInstance();
+let app = App.getInstance();
 
 /* write data from Instagram info
  *
@@ -10,6 +10,7 @@ const app = App.getInstance();
  */
 global.writeDataFromInstagramInfo = () => {
   Logger.log(`${TAG}, writeDataFromInstagramInfo()`);
+  app = App.getInstance();
   app.writeDataFromInstagramInfo();
   Logger.log(`${TAG}, writeDataFromInstagramInfo() done`);
 }
@@ -21,6 +22,7 @@ global.writeDataFromInstagramInfo = () => {
  */
 global.postToTumblr = () => {
   Logger.log(`${TAG}, postToTumblr()`);
+  app = App.getInstance();
   app.postToTumblr();
   Logger.log(`${TAG}, postToTumblr() done`);
 }
@@ -33,6 +35,7 @@ global.postToTumblr = () => {
 // global.startSlack = () => {
 global.scrapeInstagramImageViaSlack = () => {
   Logger.log(`${TAG}, scrapeInstagramImageViaSlack()`);
+  app = App.getInstance();
   app.scrapeInstagramImageViaSlack();
   Logger.log(`${TAG}, scrapeInstagramImageViaSlack() done`);
 }

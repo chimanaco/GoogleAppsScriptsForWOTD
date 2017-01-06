@@ -59,7 +59,7 @@ export default class App {
     consts.set('ORG_DATE_COL', 1);
     consts.set('URL_COL', 3);
     consts.set('SOURCE_COL', 4);
-    consts.set('NEW_DATE_COL', 5);
+    consts.set('DATE_COL', 5);
     consts.set('NAME_COL', 6);
     consts.set('LATITUDE_COL', 7);
     consts.set('LONGITUDE_COL', 8);
