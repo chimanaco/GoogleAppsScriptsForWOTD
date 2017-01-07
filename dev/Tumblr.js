@@ -1,12 +1,12 @@
 import GASSpreadsheets from './libs/GAS/Google/GASSpreadsheets';
 import GASTumblr from './libs/GAS/Tumblr/GASTumblr';
-import consts from './Consts';
+import config from './Config';
 
 export default class Tumblr {
   constructor(sheet, lastRow) {
     this.TAG = 'Tumblr ';
     Logger.log(`${this.TAG}, constructor`);
-    this.consts = consts.getAll();
+    Logger.log(`${this.TAG}, constructor config=, ${config.instagram.accesToken}, `);
 
     this.sheet = sheet;
     this.lastRow = lastRow;
@@ -17,146 +17,165 @@ export default class Tumblr {
    * @param { }
    */
   writeData() {
-    const firstRow = this._checkIfDone(this.lastRow);
-    Logger.log(`${this.TAG}, firstRow() firstRow=, ${firstRow}`);
+    const rowToStart = GASSpreadsheets.getRowToStart(
+      this.sheet,
+      this.lastRow,
+      config.columns.instagram.done);
 
-    if (firstRow !== 0) {
-      this._goPosts(this.sheet, firstRow, this.lastRow);
-    }
-  }
+    Logger.log(`${this.TAG}, writeData() rowToStart=, ${rowToStart}`);
 
-  _checkIfDone(row) {
-    let rowToStart = 0;
-    Logger.log(`${this.TAG}, _checkIfDone() row=, ${row}`);
-
-    for (let i = row; i > 0; i--) {
-      const isDone = GASSpreadsheets.checkIfCellHasValue(this.sheet, i, this.consts.DONE_COL);
-      if (isDone) {
-        rowToStart = i + 1;
-        Logger.log(`${this.TAG}, IsDone()=, ${isDone}`);
-        break;
+    if (rowToStart !== '' && rowToStart > 0) {
+      // this.goPosts(this.sheet, rowToStart, this.lastRow);
+      for (let i = rowToStart; i < this.lastRow + 1; i++) {
+        Logger.log(`${this.TAG}, writeData() isDone=Post:, ${i}`);
+        this.tumblrPost(this.sheet, i);
       }
     }
-    return rowToStart;
   }
 
-  _goPosts(sheet, firstRow, lastRow) {
-    for (let i = firstRow; i < lastRow + 1; i++) {
-      Logger.log(`${this.TAG}, _goPosts() isDone=Post:, ${i}`);
-      this._tumblrPost(sheet, i);
-    }
-  }
-
-  _tumblrPost(sheet, row) {
-    Logger.log(`${this.TAG}, _tumblrPost() row=, ${row}`);
-
-    const service = GASTumblr.getTumblrService(this.consts.TUMBLR_CONSUMER_KEY, this.consts.TUMBLR_CONSUMER_SECRET);
-    Logger.log(`${this.TAG}, _tumblrPost() service=, ${service}`);
-
-    const name = sheet.getRange(row, this.consts.NAME_COL).getValue();
-    const country = sheet.getRange(row, this.consts.COUNTRY_COL).getValue();
-    const city = sheet.getRange(row, this.consts.CITY_COL).getValue();
-    let caption = name + "\n" + city + " " + country;
-    const source = sheet.getRange(row, this.consts.SOURCE_COL).getValue();
-    const tags = sheet.getRange(row, this.consts.TAGS_COL).getValue();
-
-    const from = sheet.getRange(row, this.consts.USER_INSTAGRAM_COL).getValue();
-    const via = sheet.getRange(row, this.consts.FB_GROUP_COL).getValue();
-
-    Logger.log('from' + from);
-    Logger.log('via' + via);
-
-    if (from != '#N/A') {
-      Logger.log('From exists' + from);
-      // Add Instagram link text
-      caption += this._getInstagramLinkText(from);
-    } else if (via != '#N/A') {
-      Logger.log('Via Exists' + via);
-      // Add FB Group link text
-      caption += this._getFBGroupLinkText(via);
-    }
-
-    const options =
-      {
-        oAuthServiceName: 'tumblr',
-        oAuthUseToken: 'always',
-        method: 'POST',
-        payload: {
-          type: 'photo',
-          caption: caption,
-          source: source,
-          tags: tags
-        }
-      };
-
-    Logger.log(`${this.TAG}, _tumblrPost() options=, ${options}`);
+  tumblrPost(sheet, row) {
+    Logger.log(`${this.TAG}, tumblrPost() row=, ${row}`);
+    const service = GASTumblr.getTumblrService(config.tumblr.consumerKey, config.tumblr.consumerSecret);
+    Logger.log(`${this.TAG}, tumblrPost() service=, ${service}`);
 
     if (service.hasAccess()) {
-      Logger.log(`${this.TAG}, _tumblrPost() service=, ${service}`);
+      Logger.log(`${this.TAG}, tumblrPost() service=, ${service}`);
 
-      const response = service.fetch(this.consts.TUMBLR_POST_URL, options);
-      Logger.log(response);
-      this._setDoneNumber(sheet, row);
+      const caption = this.getCaption(sheet, row);
+      const source = sheet.getRange(row, config.columns.instagram.source).getValue();
+      const tags = sheet.getRange(row, config.columns.instagram.tags).getValue();
 
-      var date = sheet.getRange(row, this.consts.DATE_COL).getValue();
-      var lat = sheet.getRange(row, this.consts.LATITUDE_COL).getValue();
-      var lon = sheet.getRange(row, this.consts.LONGITUDE_COL).getValue();
-      var address = sheet.getRange(row, this.consts.ADDRESS_COL).getValue();
-      var insta = sheet.getRange(row, this.consts.USER_INSTAGRAM_COL).getValue();
+      // Post to photo
+      GASTumblr.postPhoto(service, config.tumblr.postUrl, caption, source, tags);
 
-      this._copyCell(date, name, lat, lon, address, country, city, insta);
-
+      // TODO: want to do this when posting is successfully done
+      this.afterPosting(sheet, row);
     } else {
-      var authorizationUrl = service.authorize();
-      Logger.log('Please visit the following URL and then re-run the script: ' + authorizationUrl);
+      const authorizationUrl = service.authorize();
+      Logger.log(`Please visit the following URL and then re-run the script: , ${authorizationUrl}`);
     }
   }
 
-  /*
-   * Set Done Number as it's done.
-   *
+  /**
+   * Get caption from the row
+   * @param { Sheet } sheet
+   * @param { number } row
+   * @return { string } caption
    */
-  _setDoneNumber(sheet, row) {
-    sheet.getRange(row, this.consts.DONE_COL).setValue(1);
-    Logger.log(this.TAG + '_setDoneNumber() row= ' + row);
+  getCaption(sheet, row) {
+    const name = sheet.getRange(row, config.columns.instagram.name).getValue();
+    const country = sheet.getRange(row, config.columns.instagram.country).getValue();
+    const city = sheet.getRange(row, config.columns.instagram.city).getValue();
+    let caption = `${name}, \n, ${city}, ' ', ${country}`;
+    const from = sheet.getRange(row, config.columns.instagram.userInstagram).getValue();
+    const via = sheet.getRange(row, config.columns.instagram.fbGroup).getValue();
+
+    Logger.log(`${this.TAG}, getCaption() from=, ${from}`);
+    Logger.log(`${this.TAG}, getCaption() via=, ${via}`);
+
+    if (from !== '#N/A') {
+      Logger.log(`${this.TAG}, From exists=, ${from}`);
+      // Add Instagram link text
+      caption += this.getInstagramLinkText(from);
+    } else if (via !== '#N/A') {
+      Logger.log(`${this.TAG}, Via exists=, ${via}`);
+      // Add FB Group link text
+      caption += this.getFBGroupLinkText(via);
+    }
+    return caption;
   }
 
-  _copyCell(date, name, lat, lon, address, country, city, insta) {
-    const sheet = GASSpreadsheets.getSheetByName(this.consts.SPREADSHEET, 'Washroom');
+  /**
+   * after posting
+   * @param { Sheet } sheet
+   * @param { number } row
+   */
+  afterPosting(sheet, row) {
+    // set number after posting
+    this.setDoneNumber(sheet, row);
+    // copy values into 'copy' sheet
+    const copyValues = this.getValuesForCopying();
+    this.copyCell(copyValues);
+
+  }
+
+  /**
+   * Get caption from the row
+   * @param { Sheet } sheet
+   * @param { number } row
+   * @return { string } caption
+   */
+  setDoneNumber(sheet, row) {
+    sheet.getRange(row, config.columns.instagram.done).setValue(1);
+    Logger.log(`${this.TAG}, setDoneNumber()=, ${row}`);
+  }
+
+  /**
+   * copy values to copy sheet done number
+   * @return { object } values
+   */
+  copyCell(values) {
+    const sheet = config.spreadSheet.sheet.copy;
     const row = GASSpreadsheets.getLastRow(sheet) + 1;
-
-    Logger.log(this.TAG + '_copyCell() sheet= ' + sheet);
-    Logger.log(this.TAG + '_copyCell() row= ' + row);
-
-    sheet.getRange(row, 2).setValue(date);
-    sheet.getRange(row, 3).setValue(name);
-    sheet.getRange(row, 4).setValue(lat);
-    sheet.getRange(row, 5).setValue(lon);
-    sheet.getRange(row, 6).setValue(address);
-    sheet.getRange(row, 7).setValue(country);
-    sheet.getRange(row, 8).setValue(city);
-    sheet.getRange(row, 9).setValue(insta);
-    Logger.log('Set Done Number on' + row);
+    sheet.getRange(row, config.columns.copy.date).setValue(values.date);
+    sheet.getRange(row, config.columns.copy.name).setValue(values.name);
+    sheet.getRange(row, config.columns.copy.lat).setValue(values.lat);
+    sheet.getRange(row, config.columns.copy.lon).setValue(values.lon);
+    sheet.getRange(row, config.columns.copy.address).setValue(values.address);
+    sheet.getRange(row, config.columns.copy.country).setValue(values.country);
+    sheet.getRange(row, config.columns.copy.city).setValue(values.city);
+    sheet.getRange(row, config.columns.copy.userInstagram).setValue(values.insta);
+    Logger.log(`${this.TAG}, copyCell() sheet=, ${sheet.getName()}`);
+    Logger.log(`${this.TAG}, copyCell() row=, ${row}`);
+    Logger.log(`${this.TAG}, copyCell() Done`);
   }
 
-  _getInstagramLinkText(from) {
-    Logger.log('from=' + from);
-    var text = "\n";
-    var userName = from.substr(1);
-    text += "from ";
-    text += '<a href="https://www.instagram.com/' + userName + '/">'
+  /**
+   * get values for copying
+   * @param {  }
+   * @return { object } values
+   */
+  getValuesForCopying() {
+    const name = sheet.getRange(row, config.columns.instagram.name).getValue();
+    const country = sheet.getRange(row, config.columns.instagram.country).getValue();
+    const city = sheet.getRange(row, config.columns.instagram.city).getValue();
+    const date = sheet.getRange(row, config.columns.instagram.date).getValue();
+    const lat = sheet.getRange(row, config.columns.instagram.latitude).getValue();
+    const lon = sheet.getRange(row, config.columns.instagram.longitude).getValue();
+    const address = sheet.getRange(row, config.columns.instagram.address).getValue();
+    const insta = sheet.getRange(row, config.columns.instagram.userInstagram).getValue();
+
+    const values = {
+      name,
+      country,
+      city,
+      date,
+      lat,
+      lon,
+      address,
+      insta,
+    };
+    return values;
+  }
+
+  getInstagramLinkText(from) {
+    Logger.log(`${this.TAG}, getInstagramLinkText() from=, ${from}`);
+    let text = '\n';
+    const userName = from.substr(1);
+    text += 'from ';
+    Logger.log(`<a href="https://www.instagram.com/, ${userName}, "`);
     text += from;
-    text += '</a>'
+    text += '</a>';
     return text;
   }
 
-  _getFBGroupLinkText(via) {
-    Logger.log('Via=' + via);
-    var text = "\n";
-    text += "via ";
+  getFBGroupLinkText(via) {
+    Logger.log(`${this.TAG}, getFBGroupLinkText() Via=, ${via}`);
+    let text = '\n';
+    text += 'via ';
     text += '<a href="https://www.facebook.com/groups/washroom.of.the.day/">'
     text += via;
-    text += '</a>'
+    text += '</a>';
     return text;
   }
 }

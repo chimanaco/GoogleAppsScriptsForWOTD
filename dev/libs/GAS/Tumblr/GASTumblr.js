@@ -15,6 +15,33 @@ export default class GASTumblr {
       .setPropertyStore(PropertiesService.getUserProperties());
   }
 
+  /**
+   * Post photo to Tumblr
+   * @param { Service } service
+   * @param { string } url post url
+   * @param { string } caption for post
+   * @param { string } source img source
+   * @param { string } tags for post
+   */
+  static postPhoto(service, url, caption, source, tags) {
+    const options =
+      {
+        oAuthServiceName: 'tumblr',
+        oAuthUseToken: 'always',
+        method: 'POST',
+        payload: {
+          type: 'photo',
+          caption,
+          source,
+          tags,
+        },
+      };
+    Logger.log(`GASTumblr postPhoto() options=, ${options}`);
+
+    const response = service.fetch(url, options);
+    Logger.log(`GASTumblr postPhoto() response=, ${response}`);
+  }
+
   // TODO: test this
   _authCallback(request) {
     const service = getTumblrService();

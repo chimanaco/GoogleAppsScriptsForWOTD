@@ -1,13 +1,12 @@
 import GASMaps from './libs/GAS/Google/GASMaps';
 import GASSpreadsheets from './libs/GAS/Google/GASSpreadsheets';
 import GASInstagram from './libs/GAS/Instagram/GASInstagram';
-import consts from './Consts';
+import config from './Config';
 
 export default class Instagram {
   constructor(sheet, lastRow) {
     this.TAG = 'Instagram ';
     Logger.log(`${this.TAG}, constructor`);
-    this.consts = consts.getAll();
 
     this.sheet = sheet;
     this.lastRow = lastRow;
@@ -18,7 +17,7 @@ export default class Instagram {
    * @param { }
    */
   writeData() {
-    const isNameExists = GASSpreadsheets.checkIfCellHasValue(this.sheet, this.lastRow, this.consts.NAME_COL);
+    const isNameExists = GASSpreadsheets.checkIfCellHasValue(this.sheet, this.lastRow, config.columns.instagram.name);
     Logger.log(`${this.TAG}, writeData() isNameExists=(), ${isNameExists}`);
 
     if (!isNameExists) {
@@ -33,19 +32,19 @@ export default class Instagram {
    * @param { number } row the row to write
    */
   writeInformationOnRow(sheet, row) {
-    const url = sheet.getRange(row, this.consts.URL_COL).getValue();
+    const url = sheet.getRange(row, config.columns.instagram.url).getValue();
     Logger.log(`${this.TAG}, writeInformationOnRow() url=(), ${url}`);
 
-    const photoData = GASInstagram.getData(url, this.consts.INSTAGRAM_ACCESS_TOKEN);
+    const photoData = GASInstagram.getData(url, config.instagram.accesToken);
     const name = photoData.location.name;
     const latitude = photoData.location.latitude;
     const longitude = photoData.location.longitude;
     const tagString = GASInstagram.getTagsAsString(photoData.tags);
 
-    sheet.getRange(row, this.consts.NAME_COL).setValue(name);
-    sheet.getRange(row, this.consts.LATITUDE_COL).setValue(latitude);
-    sheet.getRange(row, this.consts.LONGITUDE_COL).setValue(longitude);
-    sheet.getRange(row, this.consts.TAGS_COL).setValue(tagString);
+    sheet.getRange(row, config.columns.instagram.name).setValue(name);
+    sheet.getRange(row, config.columns.instagram.latitude).setValue(latitude);
+    sheet.getRange(row, config.columns.instagram.longitude).setValue(longitude);
+    sheet.getRange(row, config.columns.instagram.tags).setValue(tagString);
 
     // Log
     Logger.log(`${this.TAG}, writeInformationOnRow() name=, ${name}`);
@@ -88,7 +87,7 @@ export default class Instagram {
    */
   writeAddress(sheet, row, address) {
     Logger.log(`${this.TAG}, writeAddress() address=, ${address}`);
-    sheet.getRange(row, this.consts.ADDRESS_COL).setValue(address);
+    sheet.getRange(row, config.columns.instagram.address).setValue(address);
   }
 
   /**
@@ -103,7 +102,7 @@ export default class Instagram {
     let country = addressSplits.pop();
     country = country.replace(/^\s+|\s+$/g, '');
     Logger.log(`${this.TAG}, writeCountry() country=, ${country}`);
-    sheet.getRange(row, this.consts.COUNTRY_COL).setValue(country);
+    sheet.getRange(row, config.columns.instagram.country).setValue(country);
   }
 
   /**
@@ -114,7 +113,7 @@ export default class Instagram {
   writeDate(sheet, row) {
     const convertedDate = this.convertDate(sheet, row);
     Logger.log(`${this.TAG}, writeDate() convertedDate=, ${convertedDate}`);
-    sheet.getRange(row, this.consts.NEW_DATE_COL).setValue(convertedDate);
+    sheet.getRange(row, config.columns.instagram.date).setValue(convertedDate);
   }
 
   /**
@@ -124,7 +123,7 @@ export default class Instagram {
    */
   writeIGUser(sheet, row) {
     Logger.log(`${this.TAG}, writeIGUser() row=, ${row}`);
-    sheet.getRange(row, this.consts.USER_INSTAGRAM_COL).setFormula('=REGEXEXTRACT(B' + row + ',"@{1}[A-Za-z0-9_.-]*")');
+    sheet.getRange(row, config.columns.instagram.userInstagram).setFormula('=REGEXEXTRACT(B' + row + ',"@{1}[A-Za-z0-9_.-]*")');
   }
 
   /**
@@ -134,7 +133,7 @@ export default class Instagram {
    */
   writeFBGroup(sheet, row) {
     Logger.log(`${this.TAG}, writeFBGroup() row=, ${row}`);
-    sheet.getRange(row, this.consts.FB_GROUP_COL).setFormula('=REGEXEXTRACT(B' + row + ',"our\x20.*p")');
+    sheet.getRange(row, config.columns.instagram.fbGroup).setFormula('=REGEXEXTRACT(B' + row + ',"our\x20.*p")');
   }
 
   /**
@@ -144,7 +143,7 @@ export default class Instagram {
    * @return { Object } newDate
    */
   convertDate(sheet, row) {
-    const date = sheet.getRange(row, this.consts.ORG_DATE_COL).getValue();
+    const date = sheet.getRange(row, config.columns.instagram.orgDate).getValue();
     Logger.log(`${this.TAG}, convertDate() date=, ${date}`);
 
     const newDate = GASInstagram.getConvertedDate(date);

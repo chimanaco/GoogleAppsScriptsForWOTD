@@ -1,19 +1,13 @@
 import GASMail from './libs/GAS/Google/GASMail';
-import consts from './Consts';
+import config from './Config';
 
 export default class Slack {
   constructor(sheet, lastRow) {
     this.TAG = 'Slack ';
     Logger.log(`${this.TAG}, constructor`);
 
-    this.consts = consts.getAll();
-
     this.sheet = sheet;
     this.lastRow = lastRow;
-    this.OTHERS_DATE_CELL = 'A1';
-    this.OTHERS_DATE_COL = 1;
-    this.OTHERS_URL_COL = 2;
-    this.OTHERS_IMAGE_COL = 3;
   }
 
   /**
@@ -25,18 +19,18 @@ export default class Slack {
 
     const COUNT = 1;
     const URL = 'https://slack.com/api/channels.history?token=' +
-      this.consts.SLACK_API_TOKEN + '&channel=' +
+      config.slack.apiToken + '&channel=' +
       //CHANNEL + "&oldest=" +
       //this.START_TS + "&latest=" +
       //this.END_TS + "&count=" +
-      this.consts.SLACK_CHANNEL + '&count=' +
+      config.slack.channel + '&count=' +
       COUNT + '&unreads=1&pretty=1';
     // const URL = `https://slack.com/api/channels.history?token=,
-    //   ${this.consts.SLACK_API_TOKEN}, &channel=,
+    //   ${config.SLACK_API_TOKEN}, &channel=,
     //   //CHANNEL + "&oldest=" +
     //   //this.START_TS + "&latest=" +
     //   //this.END_TS + "&count=" +
-    //   ${this.consts.SLACK_CHANNEL}, &count=,
+    //   ${config.SLACK_CHANNEL}, &count=,
     //   ${COUNT}, &unreads=1&pretty=1`;
 
     Logger.log(URL);
@@ -55,7 +49,7 @@ export default class Slack {
     Logger.log(urlString);
 
     // Get Name to test
-    const name = this.sheet.getRange(this.lastRow, this.OTHERS_URL_COL).getValue();
+    const name = this.sheet.getRange(this.lastRow, config.columns.others.url).getValue();
     Logger.log(name);
 
     if (urlString === name) {
@@ -80,20 +74,20 @@ export default class Slack {
     const urlString = match[1];
     Logger.log(urlString);
 
-    const stringVal = sheet.getRange(row, this.OTHERS_IMAGE_COL).setValue(urlString);
+    const stringVal = sheet.getRange(row, config.columns.others.image).setValue(urlString);
 
     // Send Mail
     this.sendMail(urlString);
   }
 
   setInfoValue(sheet, row, urlString) {
-    sheet.getRange(row, this.OTHERS_DATE_COL).setValue(Date.now());
-    sheet.getRange(row, this.OTHERS_URL_COL).setValue(urlString);
+    sheet.getRange(row,config.columns.others.date).setValue(Date.now());
+    sheet.getRange(row, config.columns.others.url).setValue(urlString);
   }
 
   getPeriod() {
     // Get Time
-    const date = this.sheet.getRange(this.OTHERS_DATE_CELL).getValue();
+    const date = this.sheet.getRange(config.cell.others.date).getValue();
     Logger.log(date);
 
     this.START_TS = this.getStartTs(date);
@@ -124,12 +118,14 @@ export default class Slack {
   }
 
   sendMail(imgPath) {
-    const strTo = this.consts.SCRIPT_PROPERTIES.getProperty('mail_to');
-    const strSubject = 'You got an Instagram Photo for WOTD';
-    const strBody = 'Have a good one!';
     // Get An image
     const image = UrlFetchApp.fetch(imgPath);
 
-    GASMail.send(strTo, strSubject, strBody, [image.getBlob().setName('wotd.jpg')]);
+    GASMail.send(
+      config.mail.to,
+      config.mail.subject,
+      config.mail.body,
+      [image.getBlob().setName(config.mail.imgName)]
+    );
   }
 }

@@ -101,6 +101,29 @@ export default class GASSpreadsheets {
   }
 
   /**
+   * get row to start anything
+   * @param { Sheet } sheet
+   * @param { number } lastRow the last row to check
+   * @param { number } col the col to check
+   * @return { number } rowToStart the row to start
+   */
+  static getRowToStart(sheet, lastRow, col) {
+    let rowToStart;
+    Logger.log(`getRowToStart() rowToStart=, ${rowToStart}`);
+
+    for (let i = lastRow; i > 0; i--) {
+      const isDone = this.checkIfCellHasValue(sheet, i, col);
+      if (isDone) {
+        rowToStart = i + 1;
+        Logger.log(`getRowToStart() IsDone=, ${isDone}`);
+        break;
+      }
+    }
+    return rowToStart;
+  }
+
+
+  /**
    * check if the cell has value
    * @param { Sheet } sheet
    * @param { number } row for the cell
