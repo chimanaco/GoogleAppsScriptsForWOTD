@@ -3,36 +3,37 @@ import GASTumblr from './libs/GAS/Tumblr/GASTumblr';
 import config from './Config';
 
 export default class Tumblr {
-  constructor(sheet, lastRow) {
+  constructor() {
     this.TAG = 'Tumblr ';
     Logger.log(`${this.TAG}, constructor`);
-    Logger.log(`${this.TAG}, constructor config=, ${config.instagram.accesToken}, `);
-
-    this.sheet = sheet;
-    this.lastRow = lastRow;
   }
 
   /**
-   * write data on the spreadsheet
-   * @param { }
+   * write data on the row
+   * @param { string } sheet the sheet in use
+   * @param { number } lastRow
    */
-  writeData() {
+  writeData(sheet, lastRow) {
     const rowToStart = GASSpreadsheets.getRowToStart(
-      this.sheet,
-      this.lastRow,
+      sheet,
+      lastRow,
       config.columns.instagram.done);
 
     Logger.log(`${this.TAG}, writeData() rowToStart=, ${rowToStart}`);
 
     if (rowToStart !== '' && rowToStart > 0) {
-      // this.goPosts(this.sheet, rowToStart, this.lastRow);
-      for (let i = rowToStart; i < this.lastRow + 1; i++) {
+      for (let i = rowToStart; i < lastRow + 1; i++) {
         Logger.log(`${this.TAG}, writeData() isDone=Post:, ${i}`);
-        this.tumblrPost(this.sheet, i);
+        this.tumblrPost(sheet, i);
       }
     }
   }
 
+  /**
+   * Post to Tumblr
+   * @param { Sheet } sheet
+   * @param { number } row
+   */
   tumblrPost(sheet, row) {
     Logger.log(`${this.TAG}, tumblrPost() row=, ${row}`);
     const service = GASTumblr.getTumblrService(config.tumblr.consumerKey, config.tumblr.consumerSecret);
@@ -94,9 +95,8 @@ export default class Tumblr {
     // set number after posting
     this.setDoneNumber(sheet, row);
     // copy values into 'copy' sheet
-    const copyValues = this.getValuesForCopying();
+    const copyValues = this.getValuesForCopying(sheet, row);
     this.copyCell(copyValues);
-
   }
 
   /**
@@ -132,10 +132,11 @@ export default class Tumblr {
 
   /**
    * get values for copying
-   * @param {  }
+   * @param { Sheet } sheet
+   * @param { number } row
    * @return { object } values
    */
-  getValuesForCopying() {
+  getValuesForCopying(sheet, row) {
     const name = sheet.getRange(row, config.columns.instagram.name).getValue();
     const country = sheet.getRange(row, config.columns.instagram.country).getValue();
     const city = sheet.getRange(row, config.columns.instagram.city).getValue();
@@ -158,6 +159,11 @@ export default class Tumblr {
     return values;
   }
 
+  /**
+   * Get Instagram link text
+   * @param { string } from
+   * @param { string } text
+   */
   getInstagramLinkText(from) {
     Logger.log(`${this.TAG}, getInstagramLinkText() from=, ${from}`);
     let text = '\n';
@@ -169,6 +175,11 @@ export default class Tumblr {
     return text;
   }
 
+  /**
+   * Get Facebook link text
+   * @param { string } via
+   * @param { string } text
+   */
   getFBGroupLinkText(via) {
     Logger.log(`${this.TAG}, getFBGroupLinkText() Via=, ${via}`);
     let text = '\n';

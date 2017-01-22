@@ -19,7 +19,7 @@ const sheetOthers = GASSpreadsheets.getSheetByName(spreadSheet, sheetNameOthers)
 // Configuration: Obtain Slack web API token at https://api.slack.com/web
 const slackApiToken = scriptProperties.getProperty('slack_api_token');
 if (!slackApiToken) {
-  throw 'You should set "slack_api_token" property from [File] > [Project properties] > [Script properties]';
+  throw new Error('You should set "slack_api_token" property from [File] > [Project properties] > [Script properties]');
 }
 const slackChannel = scriptProperties.getProperty('slack_channel');
 Logger.log(`${TAG}, setConstsValues() CHANNEL=, ${slackChannel}`);

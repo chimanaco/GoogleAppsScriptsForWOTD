@@ -102,4 +102,26 @@ export default class GASInstagram {
     // console.log("tagString= " + tagString);
     return tagString;
   }
+
+  /**
+   * Get tag string from the tag array
+   * @param { string } url instagram url
+   * @return { string } urlString
+   */
+  static scrapeImage(url) {
+    //let us fetch the details from API. This will give you the details of photos and URL
+    const response = UrlFetchApp.fetch(url).getContentText();
+    const myRegexp = /display_src": "([\s\S]*?)?ig_cache/i;
+    const match = myRegexp.exec(response);
+    Logger.log(match);
+
+    const urlString = match[1];
+    Logger.log(urlString);
+    // const stringVal = sheet.getRange(row, config.columns.others.image).setValue(urlString);
+    // sheet.getRange(row, config.columns.others.image).setValue(urlString);
+
+    return urlString;
+  }
+
+
 };

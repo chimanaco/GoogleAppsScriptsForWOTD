@@ -35,19 +35,19 @@ export default class App {
     const sheet = config.spreadSheet.sheet.instagram;
     const lastRow = GASSpreadsheets.getLastRow(sheet);
 
-    const instagram = new Instagram(sheet, lastRow);
-    instagram.writeData();
+    const instagram = new Instagram();
+    instagram.writeData(sheet, lastRow);
     Logger.log(`${this.TAG}, writeDataFromInstagramInfo() done`);
   }
 
   postToTumblr() {
     Logger.log(`${this.TAG}, postToTumblr()`);
     const sheet = config.spreadSheet.sheet.instagram;
-    Logger.log(`${this.TAG}, postToTumblr() 10000sheet=, ${sheet.getName()}`);
+    Logger.log(`${this.TAG}, postToTumblr() sheet=, ${sheet.getName()}`);
     const lastRow = GASSpreadsheets.getLastRow(sheet);
 
-    const tumblr = new Tumblr(sheet, lastRow);
-    tumblr.writeData();
+    const tumblr = new Tumblr();
+    tumblr.writeData(sheet, lastRow);
     Logger.log(`${this.TAG}, postToTumblr() done`);
   }
 
@@ -56,8 +56,8 @@ export default class App {
     const sheet = config.spreadSheet.sheet.others;
     const lastRow = GASSpreadsheets.getLastRow(sheet);
 
-    const slack = new Slack(sheet, lastRow);
-    slack.start();
+    const slack = new Slack();
+    slack.start(sheet, lastRow);
     Logger.log(`${this.TAG}, scrapeInstagramImageViaSlack() done`);
   }
 };

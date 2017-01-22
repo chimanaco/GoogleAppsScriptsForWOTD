@@ -4,31 +4,29 @@ import GASInstagram from './libs/GAS/Instagram/GASInstagram';
 import config from './Config';
 
 export default class Instagram {
-  constructor(sheet, lastRow) {
+  constructor() {
     this.TAG = 'Instagram ';
     Logger.log(`${this.TAG}, constructor`);
-
-    this.sheet = sheet;
-    this.lastRow = lastRow;
   }
 
   /**
-   * write data on the spreadsheet
-   * @param { }
+   * write data on the row
+   * @param { Sheet } sheet the sheet in use
+   * @param { number } lastRow
    */
-  writeData() {
-    const isNameExists = GASSpreadsheets.checkIfCellHasValue(this.sheet, this.lastRow, config.columns.instagram.name);
+  writeData(sheet, lastRow) {
+    const isNameExists = GASSpreadsheets.checkIfCellHasValue(sheet, lastRow, config.columns.instagram.name);
     Logger.log(`${this.TAG}, writeData() isNameExists=(), ${isNameExists}`);
 
     if (!isNameExists) {
       // Write Infromation
-      this.writeInformationOnRow(this.sheet, this.lastRow);
+      this.writeInformationOnRow(sheet, lastRow);
     }
   }
 
   /**
    * write some information from the photo on the row
-   * @param { string } sheet the sheet in use
+   * @param { Sheet } sheet the sheet in use
    * @param { number } row the row to write
    */
   writeInformationOnRow(sheet, row) {
@@ -67,7 +65,7 @@ export default class Instagram {
 
   /**
    * write location information on the row
-   * @param { string } sheet the sheet in use
+   * @param { Sheet } sheet the sheet in use
    * @param { number } row the row in use
    * @param { number } latitude
    * @param { number } longitude
@@ -81,7 +79,7 @@ export default class Instagram {
 
   /**
    * write address on the row
-   * @param { string } sheet the sheet in use
+   * @param { Sheet } sheet the sheet in use
    * @param { number } row the row in use
    * @param { string } address
    */
@@ -92,7 +90,7 @@ export default class Instagram {
 
   /**
    * write country on the row
-   * @param { string } sheet the sheet in use
+   * @param { Sheet } sheet the sheet in use
    * @param { number } row the row in use
    * @param { string } address
    */
@@ -107,7 +105,7 @@ export default class Instagram {
 
   /**
    * write date on the row
-   * @param { string } sheet the sheet in use
+   * @param { Sheet } sheet the sheet in use
    * @param { number } row the row in use
    */
   writeDate(sheet, row) {
@@ -128,7 +126,7 @@ export default class Instagram {
 
   /**
    * write facebook group
-   * @param { string } sheet the sheet in use
+   * @param { Sheet } sheet the sheet in use
    * @param { number } row the row in use
    */
   writeFBGroup(sheet, row) {

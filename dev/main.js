@@ -30,7 +30,6 @@ global.postToTumblr = () => {
  * @param { }
  * @return { }
  */
-// global.startSlack = () => {
 global.scrapeInstagramImageViaSlack = () => {
   Logger.log(`${TAG}, scrapeInstagramImageViaSlack()`);
   app.scrapeInstagramImageViaSlack();
