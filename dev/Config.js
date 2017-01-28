@@ -37,7 +37,7 @@ const tumblrConsumerKey = scriptProperties.getProperty('tumblr_consumer_key');
 const tumblrConsumerSecret = scriptProperties.getProperty('tumblr_consumer_secret');
 const tumblrPostUrl = 'https://api.tumblr.com/v2/blog/washroomoftheday.tumblr.com/post';
 
-const appState = {
+const config = {
   spreadSheet: {
     scriptProperties,
     spreadSheetId,
@@ -55,6 +55,7 @@ const appState = {
   },
   instagram: {
     accesToken: instagramAccessToken,
+    history: 5,
   },
   tumblr: {
     consumerKey: tumblrConsumerKey,
@@ -108,5 +109,5 @@ const appState = {
   },
 };
 
-export default appState;
+export default config;
 

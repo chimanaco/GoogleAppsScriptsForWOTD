@@ -23,9 +23,9 @@ export default class GASInstagram {
    * @return { string } endPoint
    */
   static getEndPoint(url, accessToken) {
-    const shortCode = url.split("/")[4];
+    const shortCode = url.split('/')[4];
     // console.log("url.split= " + url.split("/"));
-    let endPoint = 'https://api.instagram.com/v1/media/shortcode/' + shortCode + '?access_token=' + accessToken;
+    const endPoint = 'https://api.instagram.com/v1/media/shortcode/' + shortCode + '?access_token=' + accessToken;
     return endPoint;
   }
 
@@ -50,13 +50,13 @@ export default class GASInstagram {
    * @return { Object } newDate
    */
   static getConvertedDate(date) {
-    const dateSplits = date.split(" ");
+    const dateSplits = date.split(' ');
     const mString = dateSplits[0]; // month
     const dString = dateSplits[1]; // day + ,
     const yString = dateSplits[2]; // year
     const mNum = Month.getNumber(mString);
-    const dNum = dString.split(",")[0];
-    const newDate = mNum + "/" + dNum + "/" + yString;
+    const dNum = dString.split(',')[0];
+    const newDate = mNum + '/' + dNum + '/' + yString;
 
     // console.log("date= " + date);
     // console.log("dateSplits= " + dateSplits);
@@ -76,13 +76,13 @@ export default class GASInstagram {
    * @return { string } tagString
    */
   static getTagsAsString(tags) {
-    let tagString = "";
+    let tagString = '';
     const len = tags.length;
 
     for (var i = 0; i < len; i++) {
       tagString += tags[i];
       if (i < len - 1) {
-        tagString += ",";
+        tagString += ',';
       }
     }
     // console.log("tags= " + tags);
@@ -97,7 +97,6 @@ export default class GASInstagram {
    * @return { string } urlString
    */
   static scrapeImage(url) {
-    //let us fetch the details from API. This will give you the details of photos and URL
     const response = GASUrl.getResponse(url);
     const myRegexp = /display_src": "([\s\S]*?)?ig_cache/i;
     const match = myRegexp.exec(response);
@@ -105,8 +104,6 @@ export default class GASInstagram {
 
     const urlString = match[1];
     Logger.log(urlString);
-    // const stringVal = sheet.getRange(row, config.columns.others.image).setValue(urlString);
-    // sheet.getRange(row, config.columns.others.image).setValue(urlString);
 
     return urlString;
   }

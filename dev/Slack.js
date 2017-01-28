@@ -13,10 +13,10 @@ export default class Slack {
   }
 
   /**
-   * start
+   * scrapeInstagramImage
    * @param { Sheet } sheet the sheet in use
    */
-  start(sheet) {
+  scrapeInstagramImage(sheet) {
     const length = config.slack.history;
     const url = GASSlack.getImageURL(config.slack.apiToken, config.slack.channel, length);
     const responseObj = GASUrl.getResponseObject(url);
@@ -110,8 +110,11 @@ export default class Slack {
    * @param { String } imgPath
    */
   sendMail(imgPath) {
+    Logger.log(`${this.TAG}, sendMail() imgPath=, ${imgPath}`);
+
     // Get An image
-    const image = GASUrl.getResponse(imgPath);
+    const image = UrlFetchApp.fetch(imgPath);
+    Logger.log(`${this.TAG}, sendMail() image=, ${image}`);
 
     GASMail.send(
       config.mail.to,
@@ -119,5 +122,6 @@ export default class Slack {
       config.mail.body,
       [image.getBlob().setName(config.mail.imgName)]
     );
+    Logger.log(`${this.TAG}, sendMail() Done`);
   }
 }

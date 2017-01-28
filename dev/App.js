@@ -33,10 +33,11 @@ export default class App {
     Logger.log(`${this.TAG}, writeDataFromInstagramInfo()`);
 
     const sheet = config.spreadSheet.sheet.instagram;
+    const length = config.instagram.history;
     const lastRow = GASSpreadsheets.getLastRow(sheet);
     const instagram = new Instagram();
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < length; i++) {
       instagram.writeData(sheet, lastRow - i);
       Logger.log(`${this.TAG} writeDataFromInstagramInfo() loop ${i}`);
     }
@@ -60,7 +61,7 @@ export default class App {
     const slack = new Slack();
 
     // const lastRow = GASSpreadsheets.getLastRow(sheet);
-    slack.start(sheet);
+    slack.scrapeInstagramImage(sheet);
     Logger.log(`${this.TAG}, scrapeInstagramImageViaSlack() done`);
   }
 };
