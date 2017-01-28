@@ -51,6 +51,7 @@ const appState = {
   slack: {
     apiToken: slackApiToken,
     channel: slackChannel,
+    history: 5,
   },
   instagram: {
     accesToken: instagramAccessToken,

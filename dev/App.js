@@ -57,10 +57,10 @@ export default class App {
   scrapeInstagramImageViaSlack() {
     Logger.log(`${this.TAG}, scrapeInstagramImageViaSlack()`);
     const sheet = config.spreadSheet.sheet.others;
-    const lastRow = GASSpreadsheets.getLastRow(sheet);
-
     const slack = new Slack();
-    slack.start(sheet, lastRow);
+
+    // const lastRow = GASSpreadsheets.getLastRow(sheet);
+    slack.start(sheet);
     Logger.log(`${this.TAG}, scrapeInstagramImageViaSlack() done`);
   }
 };
