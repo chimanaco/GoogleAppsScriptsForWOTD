@@ -46,6 +46,8 @@ export default class Tumblr {
       const source = sheet.getRange(row, config.columns.instagram.source).getValue();
       const tags = sheet.getRange(row, config.columns.instagram.tags).getValue();
 
+      Logger.log(`${this.TAG}, tumblrPost() caption=, ${caption}`);
+
       // Post to photo
       GASTumblr.postPhoto(service, config.tumblr.postUrl, caption, source, tags);
 
@@ -64,13 +66,19 @@ export default class Tumblr {
    * @return { string } caption
    */
   getCaption(sheet, row) {
+    const comment = sheet.getRange(row, config.columns.instagram.comment).getValue();
     const name = sheet.getRange(row, config.columns.instagram.name).getValue();
     const country = sheet.getRange(row, config.columns.instagram.country).getValue();
     const city = sheet.getRange(row, config.columns.instagram.city).getValue();
-    let caption = `${name}, \n, ${city}, ' ', ${country}`;
+    let caption = `${name} \n ${city} ${country}`;
     const from = sheet.getRange(row, config.columns.instagram.userInstagram).getValue();
     const via = sheet.getRange(row, config.columns.instagram.fbGroup).getValue();
 
+    if (comment !== '') {
+      caption = `${comment} \n ${caption}`;
+    }
+
+    Logger.log(`${this.TAG}, getCaption() caption=, ${caption}`);
     Logger.log(`${this.TAG}, getCaption() from=, ${from}`);
     Logger.log(`${this.TAG}, getCaption() via=, ${via}`);
 
@@ -105,6 +113,7 @@ export default class Tumblr {
    * @param { number } row
    * @return { string } caption
    */
+
   setDoneNumber(sheet, row) {
     sheet.getRange(row, config.columns.instagram.done).setValue(1);
     Logger.log(`${this.TAG}, setDoneNumber()=, ${row}`);
@@ -116,6 +125,9 @@ export default class Tumblr {
    */
   copyCell(values) {
     const sheet = config.spreadSheet.sheet.copy;
+
+    Logger.log(`${this.TAG}, copyCell() sheet=, ${sheet}`);
+
     const row = GASSpreadsheets.getLastRow(sheet) + 1;
     sheet.getRange(row, config.columns.copy.date).setValue(values.date);
     sheet.getRange(row, config.columns.copy.name).setValue(values.name);
@@ -169,7 +181,7 @@ export default class Tumblr {
     let text = '\n';
     const userName = from.substr(1);
     text += 'from ';
-    Logger.log(`<a href="https://www.instagram.com/, ${userName}, "`);
+    text += `<a href="https://www.instagram.com/, ${userName}">`;
     text += from;
     text += '</a>';
     return text;
