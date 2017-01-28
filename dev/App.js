@@ -34,9 +34,12 @@ export default class App {
 
     const sheet = config.spreadSheet.sheet.instagram;
     const lastRow = GASSpreadsheets.getLastRow(sheet);
-
     const instagram = new Instagram();
-    instagram.writeData(sheet, lastRow);
+
+    for (let i = 0; i < 5; i++) {
+      instagram.writeData(sheet, lastRow - i);
+      Logger.log(`${this.TAG} writeDataFromInstagramInfo() loop ${i}`);
+    }
     Logger.log(`${this.TAG}, writeDataFromInstagramInfo() done`);
   }
 

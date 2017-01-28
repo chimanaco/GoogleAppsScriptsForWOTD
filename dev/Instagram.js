@@ -12,15 +12,15 @@ export default class Instagram {
   /**
    * write data on the row
    * @param { Sheet } sheet the sheet in use
-   * @param { number } lastRow
+   * @param { number } row
    */
-  writeData(sheet, lastRow) {
-    const isNameExists = GASSpreadsheets.checkIfCellHasValue(sheet, lastRow, config.columns.instagram.name);
+  writeData(sheet, row) {
+    const isNameExists = GASSpreadsheets.checkIfCellHasValue(sheet, row, config.columns.instagram.name);
     Logger.log(`${this.TAG}, writeData() isNameExists=(), ${isNameExists}`);
 
     if (!isNameExists) {
       // Write Infromation
-      this.writeInformationOnRow(sheet, lastRow);
+      this.writeInformationOnRow(sheet, row);
     }
   }
 
@@ -52,6 +52,9 @@ export default class Instagram {
 
     // Set Address from latitude and longitude
     this.writeLocation(sheet, row, latitude, longitude);
+
+    // Write Comment
+    this.writeComment(sheet, row);
 
     // Write Date
     this.writeDate(sheet, row);
@@ -112,6 +115,16 @@ export default class Instagram {
     const convertedDate = this.convertDate(sheet, row);
     Logger.log(`${this.TAG}, writeDate() convertedDate=, ${convertedDate}`);
     sheet.getRange(row, config.columns.instagram.date).setValue(convertedDate);
+  }
+
+  /**
+   * write comment on the row
+   * @param { Sheet } sheet the sheet in use
+   * @param { number } row the row in use
+   */
+  writeComment(sheet, row) {
+    Logger.log(`${this.TAG}, writeComment() convertedDate=, ${row}`);
+    sheet.getRange(row, config.columns.instagram.comment).setFormula('=REGEXEXTRACT(B' + row + ',"(.*)")');
   }
 
   /**
