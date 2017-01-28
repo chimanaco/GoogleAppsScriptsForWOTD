@@ -1,4 +1,5 @@
 import Month from '../../util/Month';
+import GASUrl from '../Google/GASUrl';
 
 export default class GASInstagram {
 
@@ -10,7 +11,7 @@ export default class GASInstagram {
    */
   static getData(url, accessToken) {
     const endPoint = this.getEndPoint(url, accessToken);
-    const response = this.getResponse(endPoint);
+    const response = GASUrl.getResponse(endPoint);
     const data = this.getDataFromResponse(response);
     return data;
   }
@@ -26,19 +27,6 @@ export default class GASInstagram {
     // console.log("url.split= " + url.split("/"));
     let endPoint = 'https://api.instagram.com/v1/media/shortcode/' + shortCode + '?access_token=' + accessToken;
     return endPoint;
-  }
-
-  /**
-   * get response with instagram endPoint
-   * @param { string } endPoint from instagram API
-   * @param { number } row the row in use
-   * @return { string } response
-   */
-  static getResponse(endPoint) {
-    // let us fetch the details from API. This will give you the details of photos and URL
-    const response = UrlFetchApp.fetch(endPoint).getContentText();
-    Logger.log("InstagramUtil _getResponse()= " + response);
-    return response;
   }
 
   /**
@@ -110,7 +98,7 @@ export default class GASInstagram {
    */
   static scrapeImage(url) {
     //let us fetch the details from API. This will give you the details of photos and URL
-    const response = UrlFetchApp.fetch(url).getContentText();
+    const response = GASUrl.getResponse(url);
     const myRegexp = /display_src": "([\s\S]*?)?ig_cache/i;
     const match = myRegexp.exec(response);
     Logger.log(match);

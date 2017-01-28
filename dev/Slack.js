@@ -111,7 +111,7 @@ export default class Slack {
    */
   sendMail(imgPath) {
     // Get An image
-    const image = UrlFetchApp.fetch(imgPath);
+    const image = GASUrl.getResponse(imgPath);
 
     GASMail.send(
       config.mail.to,
