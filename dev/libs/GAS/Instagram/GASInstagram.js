@@ -98,11 +98,20 @@ export default class GASInstagram {
    */
   static scrapeImage(url) {
     const response = GASUrl.getResponse(url);
-    const myRegexp = /display_src": "([\s\S]*?)?ig_cache/i;
+    // display_url": " と " の間の文字列を取得
+    // http://www.usamimi.info/~sutara/sample/regexp_01.php
+    // http://stackoverflow.com/questions/16568011/regular-expression-to-escape-double-quotes-within-double-quotes
+    const myRegexp = /display_url": "([\s\S]*?)"/g;
     const match = myRegexp.exec(response);
+
+    Logger.log('/////////////response/////////////////////');
+    Logger.log(response);
+
+    Logger.log('/////////////match/////////////////////');
     Logger.log(match);
 
     const urlString = match[1];
+    Logger.log('/////////////URL/////////////////////');
     Logger.log(urlString);
 
     return urlString;
