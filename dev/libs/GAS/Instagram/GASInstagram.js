@@ -117,5 +117,33 @@ export default class GASInstagram {
     return urlString;
   }
 
+  /**
+   * Get date string from the URL
+   * @param { string } url instagram url
+   * @return { string } urlString
+   */
+  static scrapeName(url) {
+    const response = GASUrl.getResponse(url).toString();
+    // display_url": " と " の間の文字列を取得
+    // http://www.usamimi.info/~sutara/sample/regexp_01.php
+    // http://stackoverflow.com/questions/16568011/regular-expression-to-escape-double-quotes-within-double-quotes
+    const myRegexp = /has_public_page": true, "name": "([\s\S]*?)"/g;
 
+    Logger.log('/////////////myRegexp/////////////////////');
+    Logger.log(myRegexp);
+
+    const match = myRegexp.exec(response);
+
+    Logger.log('/////////////response/////////////////////');
+    Logger.log(response);
+
+    Logger.log('/////////////match/////////////////////');
+    Logger.log(match);
+
+    const urlString = match[1];
+    Logger.log('/////////////URL/////////////////////');
+    Logger.log(urlString);
+
+    return urlString;
+  }
 };

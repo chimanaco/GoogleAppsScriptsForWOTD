@@ -31,6 +31,24 @@ global.scrapeInstagramImageViaSlack = () => {
   Logger.log(`${TAG}, scrapeInstagramImageViaSlack() done`);
 }
 
+/**
+ * Scrape Instagram Image info Manually
+ */
+global.writeDataFromInstagramInfoRecover = () => {
+  Logger.log(`${TAG}, writeDataFromInstagramInfoRecover()`);
+  app.writeDataFromInstagramInfoRecover();
+  Logger.log(`${TAG}, writeDataFromInstagramInfoRecover() done`);
+}
+
+/**
+ * Get Address and write on cells from Lat and Lon
+ */
+global.writeAdressFromLatLon = () => {
+  Logger.log(`${TAG}, writeAdressFromLatLon()`);
+  app.writeAdressFromLatLon();
+  Logger.log(`${TAG}, writeAdressFromLatLon() done`);
+}
+
 
 
 

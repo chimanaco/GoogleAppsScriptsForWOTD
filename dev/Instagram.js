@@ -1,3 +1,4 @@
+import StringUtil from './libs/util/StringUtil';
 import GASMaps from './libs/GAS/Google/GASMaps';
 import GASSpreadsheets from './libs/GAS/Google/GASSpreadsheets';
 import GASInstagram from './libs/GAS/Instagram/GASInstagram';
@@ -22,6 +23,23 @@ export default class Instagram {
       // Write Infromation
       this.writeInformationOnRow(sheet, row);
     }
+  }
+
+  /**
+   * write data on the row
+   * @param { Sheet } sheet the sheet in use
+   * @param { number } row
+   */
+  writeDataHelp(sheet, row) {
+    // Write Date
+    this.writeDate(sheet, row);
+    const url = sheet.getRange(row, config.columns.instagram.url).getValue();
+
+    Logger.log(`${this.TAG}, scrapeInstagramName() url=, ${url}`);
+    const name = this.scrapeName(url);
+    sheet.getRange(row, config.columns.instagram.name).setValue(name);
+
+    Logger.log(`${this.TAG}, scrapeInstagramName() id=, ${name}`);
   }
 
   /**
@@ -161,6 +179,35 @@ export default class Instagram {
     Logger.log(`${this.TAG}, convertDate() newDate=, ${newDate}`);
 
     return newDate;
+  }
+
+  scrapeName(url) {
+    Logger.log(`${this.TAG}, scrapeName() url=, ${url}`);
+    const name = GASInstagram.scrapeName(url);
+    return name;
+    // TODO: 変換のコードを書きたい
+    // const newName = StringUtil.utf8HexStringToString(name);
+    // Logger.log(`${this.TAG}, scrapeName() newName=, ${newName}`);
+    // return newName;
+    // Logger.log(`${this.TAG}, scrapeDate() newDate=, ${newDate}`);
+  }
+
+  writeLocationFromCell(sheet, row) {
+    const latitude = GASSpreadsheets.getValueFromCell(sheet, row, config.columns.instagram.latitude);
+    const longitude = GASSpreadsheets.getValueFromCell(sheet, row, config.columns.instagram.longitude);
+
+    // Log
+    Logger.log(`${this.TAG}, writeInformationOnRow() latitude=, ${latitude}`);
+    Logger.log(`${this.TAG}, writeInformationOnRow() longitude=, ${longitude}`);
+
+    // Set Address from latitude and longitude
+    this.writeLocation(sheet, row, latitude, longitude);
+
+    // Write Instagram account
+    this.writeIGUser(sheet, row);
+
+    // Write Facebook group
+    this.writeFBGroup(sheet, row);
   }
 }
 
