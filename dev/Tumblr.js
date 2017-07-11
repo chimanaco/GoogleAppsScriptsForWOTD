@@ -181,7 +181,7 @@ export default class Tumblr {
     let text = '\n';
     const userName = from.substr(1);
     text += 'from ';
-    text += `<a href="https://www.instagram.com/, ${userName}">`;
+    text += `<a href="https://www.instagram.com/${userName}">`;
     text += from;
     text += '</a>';
     return text;
