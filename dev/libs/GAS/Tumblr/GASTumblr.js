@@ -1,3 +1,5 @@
+import JsonUtil from '../../util/JsonUtil';
+
 export default class GASTumblr {
   /**
    * Get Tumblr service
@@ -13,6 +15,34 @@ export default class GASTumblr {
       .setConsumerSecret(consumerSecret)
       .setCallbackFunction('_authCallback')
       .setPropertyStore(PropertiesService.getUserProperties());
+  }
+
+  /**
+   * Get post from Tumblr
+   * @param { Service } service
+   * @param { string } url post url
+   * @param { string } caption for post
+   * @param { string } source img source
+   * @param { string } tags for post
+   */
+  static getPhotoPostCaption(service, url, id) {
+    const options =
+      {
+        oAuthServiceName: 'tumblr',
+        oAuthUseToken: 'always',
+        method: 'POST',
+        payload: {
+          id,
+        },
+      };
+    Logger.log('GASTumblr getPhotoPost()');
+
+    const response = service.fetch(url, options);
+    const responseObj = JSON.parse(response);
+    // get caption of the post
+    const caption = responseObj.response.posts[0].caption;
+    Logger.log(`GASTumblr getPhotoPost() responseObj.response.posts[0].caption=, ${caption}`);
+    return caption;
   }
 
   /**
@@ -40,6 +70,58 @@ export default class GASTumblr {
 
     const response = service.fetch(url, options);
     Logger.log(`GASTumblr postPhoto() response=, ${response}`);
+  }
+
+  /**
+   * Edit Tumblr Post
+   * @param { Service } service
+   * @param { string } url post url
+   * @param { string } caption for post
+   * @param { string } source img source
+   * @param { string } tags for post
+   */
+  static getPost(service, url, caption) {
+    const options =
+      {
+        oAuthServiceName: 'tumblr',
+        oAuthUseToken: 'always',
+        method: 'POST',
+        payload: {
+          type: 'photo',
+          id: 163802505090,
+          caption,
+        },
+      };
+    Logger.log(`GASTumblr editPost() options=, ${options}`);
+
+    const response = service.fetch(url, options);
+    Logger.log(`GASTumblr editPost()100 response=, ${response}`);
+  }
+
+  /**
+   * Edit Tumblr Post
+   * @param { Service } service
+   * @param { string } url post url
+   * @param { string } caption for post
+   * @param { string } source img source
+   * @param { string } tags for post
+   */
+  static edipPost(service, url, id, caption) {
+    const options =
+      {
+        oAuthServiceName: 'tumblr',
+        oAuthUseToken: 'always',
+        method: 'POST',
+        payload: {
+          type: 'photo',
+          id,
+          caption,
+        },
+      };
+    // Logger.log(`GASTumblr editPost() options=, ${options}`);
+
+    const response = service.fetch(url, options);
+    Logger.log(`GASTumblr editPost() response=, ${response}`);
   }
 
   // TODO: test this

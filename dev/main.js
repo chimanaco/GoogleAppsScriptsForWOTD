@@ -23,6 +23,16 @@ global.postToTumblr = () => {
 }
 
 /**
+ * edit Tumblr post
+ */
+global.editTumblrPost = () => {
+  Logger.log(`${TAG}, editTumblrPost()`);
+  app.editTumblrPost();
+  Logger.log(`${TAG}, editTumblrPost() done`);
+}
+
+
+/**
  * Scrape Instagram Image via Slack
  */
 global.scrapeInstagramImageViaSlack = () => {

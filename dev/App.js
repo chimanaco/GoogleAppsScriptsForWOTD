@@ -67,6 +67,13 @@ export default class App {
     Logger.log(`${this.TAG}, postToTumblr() done`);
   }
 
+  editTumblrPost() {
+    Logger.log(`${this.TAG}, editTumblrPost()`);
+    const tumblr = new Tumblr();
+    tumblr.editTumblrPost();
+  }
+
+
   scrapeInstagramImageViaSlack() {
     Logger.log(`${this.TAG}, scrapeInstagramImageViaSlack()`);
     const sheet = config.spreadSheet.sheet.others;

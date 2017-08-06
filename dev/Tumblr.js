@@ -60,6 +60,51 @@ export default class Tumblr {
   }
 
   /**
+   * Edit Tumblr Post
+   * @param { Sheet } sheet
+   * @param { number } row
+   */
+  editTumblrPost() {
+    Logger.log(`${this.TAG}, editTumblrPost()`);
+    const service = GASTumblr.getTumblrService(config.tumblr.consumerKey, config.tumblr.consumerSecret);
+    Logger.log(`${this.TAG}, editTumblrPost() service=, ${service}`);
+
+    if (service.hasAccess()) {
+      Logger.log(`${this.TAG}, editTumblrPost() service=, ${service}`);
+
+      const url = 'http://api.tumblr.com/v2/blog/washroomoftheday/posts/photo';
+      const id = 163802503555;
+
+      const currentCaption = GASTumblr.getPhotoPostCaption(service, url, id);
+      Logger.log(`${this.TAG}, editTumblrPost() currentCaption=, ${currentCaption}`);
+
+      let newCaption = currentCaption.replace(/,%20/g, '');
+      Logger.log(`${this.TAG}, editTumblrPost() newCaption=, ${newCaption}`);
+
+      // newCaption = newCaption.querySelector('p').firstChild.data
+      newCaption = newCaption.replace(/<(\/?|\!?)(p)>/g, '');
+      // newCaption.replace(/<[^>]*?>|(\w+)/g, '');
+      Logger.log(`${this.TAG}, editTumblrPost() newCaption=, ${newCaption}`);
+
+      // newCaption = 'LYURO / THE SHARE HOTELS <br/>';
+      // newCaption += 'Tokyo Japan<br/>'
+      // newCaption += 'from <a href="https://www.instagram.com/nenoved" target="_blank">@nenoved</a>';
+      // // Post to photo
+
+      // const id2 = 163802505090;
+
+      const editUrl = 'https://api.tumblr.com/v2/blog/washroomoftheday.tumblr.com/post/edit';
+      GASTumblr.edipPost(service, editUrl, id , newCaption);
+
+      // TODO: want to do this when posting is successfully done
+      // this.afterPosting(sheet, row);
+    } else {
+      const authorizationUrl = service.authorize();
+      Logger.log(`Please visit the following URL and then re-run the script: , ${authorizationUrl}`);
+    }
+  }
+
+  /**
    * Get caption from the row
    * @param { Sheet } sheet
    * @param { number } row
