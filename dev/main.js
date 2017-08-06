@@ -10,7 +10,6 @@ global.writeDataFromInstagramInfo = () => {
   Logger.log(`${TAG}, writeDataFromInstagramInfo()`);
   app.writeDataFromInstagramInfo();
   Logger.log(`${TAG}, writeDataFromInstagramInfo() done`);
-
 }
 
 /**
@@ -23,14 +22,13 @@ global.postToTumblr = () => {
 }
 
 /**
- * edit Tumblr post
+ * edit Tumblr multi posts
  */
-global.editTumblrPost = () => {
-  Logger.log(`${TAG}, editTumblrPost()`);
-  app.editTumblrPost();
-  Logger.log(`${TAG}, editTumblrPost() done`);
+global.editTumblrMultiPosts = () => {
+  Logger.log(`${TAG}, editTumblrMultiPosts() start`);
+  app.editTumblrMultiPosts();
+  Logger.log(`${TAG}, editTumblrMultiPosts() done`);
 }
-
 
 /**
  * Scrape Instagram Image via Slack

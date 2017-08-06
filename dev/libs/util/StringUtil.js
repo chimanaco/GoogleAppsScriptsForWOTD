@@ -106,4 +106,14 @@ export default class StringUtil {
     }
     return result;
   }
+
+  /**
+   * Remove P Tag
+   * @param { String } str
+   * @return { String } str
+   */
+  static removePTag(str) {
+    str = str.replace(/<(\/?|\!?)(p)>/g, '');
+    return str;
+  }
 }

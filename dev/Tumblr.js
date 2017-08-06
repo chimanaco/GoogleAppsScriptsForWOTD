@@ -1,5 +1,6 @@
 import GASSpreadsheets from './libs/GAS/Google/GASSpreadsheets';
 import GASTumblr from './libs/GAS/Tumblr/GASTumblr';
+import StringUtil from './libs/util/StringUtil';
 import config from './Config';
 
 export default class Tumblr {
@@ -60,11 +61,35 @@ export default class Tumblr {
   }
 
   /**
-   * Edit Tumblr Post
-   * @param { Sheet } sheet
-   * @param { number } row
+   * Edit Tumblr Multi Posts
+   * @param { number } limit
    */
-  editTumblrPost() {
+  editTumblrMultiPosts(limit) {
+    Logger.log(`${this.TAG}, editTumblrMultiPosts()`);
+    const service = GASTumblr.getTumblrService(config.tumblr.consumerKey, config.tumblr.consumerSecret);
+    Logger.log(`${this.TAG}, editTumblrMultiPosts() service=, ${service}`);
+
+    if (service.hasAccess()) {
+      Logger.log(`${this.TAG}, editTumblrMultiPosts() service=, ${service}`);
+
+      // Get post ids
+      const idArray = GASTumblr.getTumblrPostsIds(service, config.tumblr.postUrl, limit);
+      Logger.log(`${this.TAG}, editTumblrMultiPosts() idArray=, ${idArray}`);
+
+      for (let i = 0; i < idArray.length; i++) {
+        this.editTumblrPostURL(idArray[i]);
+      }
+    } else {
+      const authorizationUrl = service.authorize();
+      Logger.log(`Please visit the following URL and then re-run the script: , ${authorizationUrl}`);
+    }
+  }
+
+  /**
+   * Edit Tumblr Post URL
+   * @param { number } id
+   */
+  editTumblrPostURL(id) {
     Logger.log(`${this.TAG}, editTumblrPost()`);
     const service = GASTumblr.getTumblrService(config.tumblr.consumerKey, config.tumblr.consumerSecret);
     Logger.log(`${this.TAG}, editTumblrPost() service=, ${service}`);
@@ -72,29 +97,18 @@ export default class Tumblr {
     if (service.hasAccess()) {
       Logger.log(`${this.TAG}, editTumblrPost() service=, ${service}`);
 
-      const url = 'http://api.tumblr.com/v2/blog/washroomoftheday/posts/photo';
-      const id = 163802503555;
-
-      const currentCaption = GASTumblr.getPhotoPostCaption(service, url, id);
+      // Get current caption
+      const currentCaption = GASTumblr.getPhotoPostCaption(service, config.tumblr.postUrl, id);
       Logger.log(`${this.TAG}, editTumblrPost() currentCaption=, ${currentCaption}`);
 
-      let newCaption = currentCaption.replace(/,%20/g, '');
-      Logger.log(`${this.TAG}, editTumblrPost() newCaption=, ${newCaption}`);
+      // Delete ,%20 from the caption
+      let newCaption = this.removeSpaceFromCaption(currentCaption);
 
-      // newCaption = newCaption.querySelector('p').firstChild.data
-      newCaption = newCaption.replace(/<(\/?|\!?)(p)>/g, '');
-      // newCaption.replace(/<[^>]*?>|(\w+)/g, '');
-      Logger.log(`${this.TAG}, editTumblrPost() newCaption=, ${newCaption}`);
+      // Remove p tag from the caption
+      newCaption = StringUtil.removePTag(newCaption);
 
-      // newCaption = 'LYURO / THE SHARE HOTELS <br/>';
-      // newCaption += 'Tokyo Japan<br/>'
-      // newCaption += 'from <a href="https://www.instagram.com/nenoved" target="_blank">@nenoved</a>';
-      // // Post to photo
-
-      // const id2 = 163802505090;
-
-      const editUrl = 'https://api.tumblr.com/v2/blog/washroomoftheday.tumblr.com/post/edit';
-      GASTumblr.edipPost(service, editUrl, id , newCaption);
+      // Edit post with new caption
+      GASTumblr.edipPost(service, config.tumblr.postEditUrl, id, newCaption);
 
       // TODO: want to do this when posting is successfully done
       // this.afterPosting(sheet, row);
@@ -246,4 +260,16 @@ export default class Tumblr {
     text += '</a>';
     return text;
   }
+
+  /**
+   * Remove Space From Caption
+   * @param { string } caption
+   * @return { string } newCaption
+   */
+  removeSpaceFromCaption(caption) {
+    const newCaption = caption.replace(/,%20/g, '');
+    return newCaption;
+  }
+
+
 }

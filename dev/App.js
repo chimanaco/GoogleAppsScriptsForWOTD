@@ -67,12 +67,11 @@ export default class App {
     Logger.log(`${this.TAG}, postToTumblr() done`);
   }
 
-  editTumblrPost() {
-    Logger.log(`${this.TAG}, editTumblrPost()`);
+  editTumblrMultiPosts() {
+    Logger.log(`${this.TAG}, editTumblrMultiPosts()`);
     const tumblr = new Tumblr();
-    tumblr.editTumblrPost();
+    tumblr.editTumblrMultiPosts(30);
   }
-
 
   scrapeInstagramImageViaSlack() {
     Logger.log(`${this.TAG}, scrapeInstagramImageViaSlack()`);

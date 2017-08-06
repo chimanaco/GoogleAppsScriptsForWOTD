@@ -18,12 +18,41 @@ export default class GASTumblr {
   }
 
   /**
+   * Get Tumblr posts IDs
+   * @param { Service } service
+   * @param { string } url post url
+   * @param { number } limit hom wany posts to get
+   * @return { array } idArray
+   */
+  static getTumblrPostsIds(service, url, limit) {
+    const options =
+      {
+        oAuthServiceName: 'tumblr',
+        oAuthUseToken: 'always',
+        method: 'POST',
+        payload: {
+          limit,
+        },
+      };
+    Logger.log('GASTumblr getTumblrPostsIds()');
+
+    const response = service.fetch(url, options);
+    const responseObj = JSON.parse(response);
+
+    const idArray = [];
+    for (let i = 0; i < limit; i++) {
+      idArray[i] = responseObj.response.posts[i].id;
+      Logger.log(`GASTumblr getTumblrPostsIds() responseObj id=, ${responseObj.response.posts[i].id}`);
+    }
+    return idArray;
+  }
+
+  /**
    * Get post from Tumblr
    * @param { Service } service
    * @param { string } url post url
-   * @param { string } caption for post
-   * @param { string } source img source
-   * @param { string } tags for post
+   * @param { number } id to get post
+   * @param { string } caption for the post
    */
   static getPhotoPostCaption(service, url, id) {
     const options =

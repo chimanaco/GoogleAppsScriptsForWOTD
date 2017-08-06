@@ -35,8 +35,8 @@ const instagramAccessToken = scriptProperties.getProperty('instagram_access_toke
 
 const tumblrConsumerKey = scriptProperties.getProperty('tumblr_consumer_key');
 const tumblrConsumerSecret = scriptProperties.getProperty('tumblr_consumer_secret');
-const tumblrPostUrl = 'https://api.tumblr.com/v2/blog/washroomoftheday.tumblr.com/post';
-const tumblrPostEditUrl = 'https://api.tumblr.com/v2/blog/washroomoftheday.tumblr.com/post/edit?id=163802505090';
+const tumblrPostUrl = 'http://api.tumblr.com/v2/blog/washroomoftheday/posts/photo';
+const tumblrPostEditUrl = 'https://api.tumblr.com/v2/blog/washroomoftheday.tumblr.com/post/edit';
 
 const config = {
   spreadSheet: {
