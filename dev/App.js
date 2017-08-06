@@ -70,7 +70,7 @@ export default class App {
   editTumblrMultiPosts() {
     Logger.log(`${this.TAG}, editTumblrMultiPosts()`);
     const tumblr = new Tumblr();
-    tumblr.editTumblrMultiPosts(30);
+    tumblr.editTumblrMultiPosts(10);
   }
 
   scrapeInstagramImageViaSlack() {
